@@ -1,0 +1,175 @@
+{% extends "base.html" %}
+{% block title %}Logbook Monitor — InternTrack{% endblock %}
+{% block nav_co_logs %}active{% endblock %}
+
+{% block content %}
+<h4 class="fw-bold mb-4">
+  <i class="bi bi-journals me-2 text-primary"></i>Logbook Monitor
+</h4>
+
+<!-- Summary stats -->
+<div class="row g-3 mb-4">
+  <div class="col-6 col-lg-3">
+    <div class="card border-0 shadow-sm text-center border-top border-primary border-3">
+      <div class="card-body py-3">
+        <div class="fw-bold fs-3 text-primary">{{ total_placed }}</div>
+        <div class="small text-muted">Placed Students</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-lg-3">
+    <div class="card border-0 shadow-sm text-center border-top border-success border-3">
+      <div class="card-body py-3">
+        <div class="fw-bold fs-3 text-success">{{ total_entries_this_week }}</div>
+        <div class="small text-muted">Logs This Week</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-lg-3">
+    <div class="card border-0 shadow-sm text-center border-top border-warning border-3">
+      <div class="card-body py-3">
+        <div class="fw-bold fs-3 text-warning">{{ total_pending }}</div>
+        <div class="small text-muted">Pending Approvals</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-lg-3">
+    <div class="card border-0 shadow-sm text-center border-top border-danger border-3">
+      <div class="card-body py-3">
+        <div class="fw-bold fs-3 text-danger">{{ total_behind }}</div>
+        <div class="small text-muted">Behind ({{ behind_days }}+ days)</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Chart: logs per day for last 14 days -->
+<div class="card border-0 shadow-sm mb-4">
+  <div class="card-header fw-semibold">
+    <i class="bi bi-bar-chart me-2"></i>Log Submissions — Past 14 Days
+  </div>
+  <div class="card-body">
+    <canvas id="logChart" style="max-height:220px;"></canvas>
+  </div>
+</div>
+
+<!-- Students at risk -->
+{% if behind_ids %}
+<div class="card border-0 shadow-sm border-top border-danger border-3 mb-4">
+  <div class="card-header fw-semibold text-danger">
+    <i class="bi bi-exclamation-triangle-fill me-2"></i>
+    Students at Risk — No log in {{ behind_days }}+ days
+  </div>
+  <div class="table-responsive">
+    <table class="table table-hover align-middle mb-0 small">
+      <thead class="table-light">
+        <tr>
+          <th>Student</th>
+          <th>Placement</th>
+          <th>Company</th>
+          <th>Total Logs</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for app in all_apps %}
+          {% if app.pk in behind_ids %}
+          <tr class="table-danger bg-opacity-25">
+            <td>
+              <div class="fw-semibold">{{ app.student.get_full_name }}</div>
+              <div class="text-muted">{{ app.student.matric_number|default:"" }}</div>
+            </td>
+            <td>{{ app.placement.title }}</td>
+            <td>{{ app.placement.company_name }}</td>
+            <td class="text-center">{{ app.total_logs }}</td>
+            <td>
+              <a href="{% url 'logbook:coordinator_student_logbook' app.pk %}"
+                 class="btn btn-sm btn-outline-danger">View Logbook</a>
+            </td>
+          </tr>
+          {% endif %}
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
+
+<!-- All students table -->
+<div class="card border-0 shadow-sm">
+  <div class="card-header fw-semibold">
+    <i class="bi bi-people me-2"></i>All Placed Students
+  </div>
+  <div class="table-responsive">
+    <table class="table table-hover align-middle mb-0 small">
+      <thead class="table-light">
+        <tr>
+          <th>Student</th>
+          <th>Company</th>
+          <th>Supervisor</th>
+          <th class="text-center">Total Logs</th>
+          <th class="text-center">Pending</th>
+          <th class="text-center">Status</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for app in all_apps %}
+        <tr>
+          <td>
+            <div class="fw-semibold">{{ app.student.get_full_name }}</div>
+            <div class="text-muted">{{ app.student.matric_number|default:"—" }}</div>
+          </td>
+          <td>{{ app.placement.company_name }}</td>
+          <td>{{ app.supervisor.get_full_name|default:"Not assigned" }}</td>
+          <td class="text-center">{{ app.total_logs }}</td>
+          <td class="text-center">
+            {% if app.pending_logs %}
+              <span class="badge bg-warning text-dark">{{ app.pending_logs }}</span>
+            {% else %}—{% endif %}
+          </td>
+          <td class="text-center">
+            {% if app.pk in behind_ids %}
+              <span class="badge bg-danger">Behind</span>
+            {% else %}
+              <span class="badge bg-success">Active</span>
+            {% endif %}
+          </td>
+          <td>
+            <a href="{% url 'logbook:coordinator_student_logbook' app.pk %}"
+               class="btn btn-sm btn-outline-primary">View</a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  new Chart(document.getElementById('logChart'), {
+    type: 'bar',
+    data: {
+      labels: {{ chart_labels|safe }},
+      datasets: [{
+        label: 'Log Entries',
+        data: {{ chart_data|safe }},
+        backgroundColor: 'rgba(13, 110, 253, 0.7)',
+        borderColor: 'rgba(13, 110, 253, 1)',
+        borderWidth: 1,
+        borderRadius: 4,
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { display: false } },
+      scales: {
+        y: { beginAtZero: true, ticks: { stepSize: 1 } },
+        x: { ticks: { font: { size: 11 } } }
+      }
+    }
+  });
+</script>
+{% endblock %}

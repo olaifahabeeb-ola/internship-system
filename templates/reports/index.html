@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+{% block title %}Reports — InternTrack{% endblock %}
+{% block nav_co_reports %}active{% endblock %}
+
+{% block content %}
+<h4 class="fw-bold mb-4">
+  <i class="bi bi-download me-2 text-primary"></i>Report Centre
+</h4>
+
+<div class="row g-4">
+
+  <!-- Individual reports -->
+  <div class="col-lg-8">
+    <div class="card border-0 shadow-sm">
+      <div class="card-header fw-semibold bg-light">
+        <i class="bi bi-person-lines-fill me-2"></i>Individual Student Reports
+      </div>
+      {% if placed_apps %}
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0 small">
+          <thead class="table-light">
+            <tr>
+              <th>Student</th>
+              <th>Company</th>
+              <th>Placement</th>
+              <th class="text-center">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for app in placed_apps %}
+            <tr>
+              <td>
+                <div class="fw-semibold">{{ app.student.get_full_name }}</div>
+                <div class="text-muted" style="font-size:0.75rem;">
+                  {{ app.student.matric_number|default:"" }}
+                </div>
+              </td>
+              <td>{{ app.placement.company_name }}</td>
+              <td>{{ app.placement.title }}</td>
+              <td class="text-center">
+                <div class="d-flex gap-1 justify-content-center">
+                  <a href="{% url 'reports:student_report' app.student.pk %}"
+                     class="btn btn-sm btn-outline-primary">
+                    <i class="bi bi-eye me-1"></i>View
+                  </a>
+                  <a href="{% url 'reports:student_report_pdf' app.student.pk %}"
+                     class="btn btn-sm btn-outline-secondary" target="_blank">
+                    <i class="bi bi-printer me-1"></i>PDF
+                  </a>
+                  <a href="{% url 'reports:student_report_csv' app.student.pk %}"
+                     class="btn btn-sm btn-outline-success">
+                    <i class="bi bi-file-earmark-spreadsheet me-1"></i>CSV
+                  </a>
+                </div>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <div class="card-body text-muted text-center py-4">
+        No placed students yet.
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Aggregate report -->
+  <div class="col-lg-4">
+    <div class="card border-0 shadow-sm mb-3">
+      <div class="card-header fw-semibold bg-light">
+        <i class="bi bi-bar-chart me-2"></i>Aggregate Report
+      </div>
+      <div class="card-body d-grid gap-2">
+        <p class="text-muted small mb-2">
+          Full placement statistics across all students, logbooks, and assessments.
+        </p>
+        <a href="{% url 'reports:aggregate' %}" class="btn btn-primary">
+          <i class="bi bi-eye me-1"></i> View Aggregate Report
+        </a>
+        <a href="{% url 'reports:aggregate_pdf' %}" class="btn btn-outline-secondary"
+           target="_blank">
+          <i class="bi bi-printer me-1"></i> Print / Export PDF
+        </a>
+        <a href="{% url 'reports:aggregate_csv' %}" class="btn btn-outline-success">
+          <i class="bi bi-file-earmark-spreadsheet me-1"></i> Download CSV
+        </a>
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

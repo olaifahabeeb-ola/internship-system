@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block title %}Create Announcement — InternTrack{% endblock %}
+{% block content %}
+{% comment %}
+  This template is a redirect shim — the real create form is coordinator_create.html
+  This file exists in case any old link points here.
+{% endcomment %}
+<script>window.location = "{% url 'announcements:create' %}";</script>
+<p>Redirecting... <a href="{% url 'announcements:create' %}">Click here</a></p>
+{% endblock %}

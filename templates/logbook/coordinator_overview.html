@@ -1,0 +1,6 @@
+{% extends "base.html" %}
+{% block title %}Logbook Monitor — InternTrack{% endblock %}
+{% block content %}
+<script>window.location = "{% url 'logbook:coordinator_overview' %}";</script>
+<p>Redirecting... <a href="{% url 'logbook:coordinator_overview' %}">Click here</a></p>
+{% endblock %}

@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% block title %}Pending Placement Approvals — InternTrack{% endblock %}
+{% block nav_co_pending %}active{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+  <h4 class="fw-bold mb-1">
+    <i class="bi bi-building-check me-2 text-info"></i>Pending Placement Approvals
+  </h4>
+  <p class="text-muted small mb-0">
+    Vacancies submitted by supervisors for <strong>{{ dept }}</strong>, awaiting your review.
+  </p>
+</div>
+
+{% if pending_placements %}
+<div class="row g-3">
+  {% for p in pending_placements %}
+  <div class="col-12">
+    <div class="card border-0 shadow-sm border-start border-info border-4">
+      <div class="card-body">
+        <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
+          <div>
+            <h6 class="fw-bold mb-1">{{ p.title }}</h6>
+            <p class="text-muted small mb-1">
+              <i class="bi bi-building me-1"></i>{{ p.company_name }}
+              &middot;
+              <i class="bi bi-geo-alt me-1"></i>{{ p.location }}
+            </p>
+            <p class="text-muted small mb-2">
+              <i class="bi bi-person-badge me-1"></i>
+              Submitted by
+              <strong>{{ p.submitted_by.get_full_name|default:"Unknown supervisor" }}</strong>
+              on {{ p.created_at|date:"d M Y" }}
+            </p>
+            <span class="badge bg-light text-dark border me-1">
+              <i class="bi bi-mortarboard me-1"></i>{{ p.get_target_department_display }}
+            </span>
+            <span class="badge bg-light text-dark border me-1">
+              {{ p.slots_available }} slot{{ p.slots_available|pluralize }}
+            </span>
+            <span class="badge bg-light text-dark border">
+              {{ p.start_date|date:"d M Y" }} — {{ p.end_date|date:"d M Y" }}
+            </span>
+          </div>
+          <a href="{% url 'placements:review_placement' p.pk %}" class="btn btn-info flex-shrink-0">
+            <i class="bi bi-eye me-1"></i> Review
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% else %}
+<div class="text-center py-5 text-muted">
+  <i class="bi bi-check2-circle fs-1 d-block mb-3 text-success"></i>
+  <h5>Nothing pending review</h5>
+  <p>Submissions from supervisors targeting {{ dept }} will appear here.</p>
+</div>
+{% endif %}
+{% endblock %}

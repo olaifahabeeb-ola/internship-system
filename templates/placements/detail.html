@@ -1,0 +1,155 @@
+{% extends "base.html" %}
+{% block title %}{{ placement.title }} — InternTrack{% endblock %}
+{% block nav_placements %}active{% endblock %}
+
+{% block content %}
+<div class="mb-3">
+  <a href="{% url 'placements:list' %}" class="text-decoration-none text-muted">
+    <i class="bi bi-arrow-left me-1"></i> Back to Placements
+  </a>
+</div>
+
+<div class="row g-4">
+
+  <!-- Main info column -->
+  <div class="col-lg-8">
+    <div class="card border-0 shadow-sm">
+      <div class="card-body p-4">
+
+        <div class="d-flex justify-content-between align-items-start mb-3">
+          <div>
+            <h3 class="fw-bold mb-1">{{ placement.title }}</h3>
+            <p class="text-muted fs-5 mb-0">
+              <i class="bi bi-building me-1"></i>{{ placement.company_name }}
+            </p>
+          </div>
+          {% if placement.status == 'open' %}
+            <span class="badge bg-success fs-6 px-3 py-2">Open</span>
+          {% else %}
+            <span class="badge bg-secondary fs-6 px-3 py-2">Closed</span>
+          {% endif %}
+        </div>
+
+        <hr>
+
+        <h6 class="fw-bold text-uppercase text-muted small mb-2">Description</h6>
+        <p class="mb-4">{{ placement.description|linebreaksbr }}</p>
+
+        {% if placement.skills_list %}
+        <h6 class="fw-bold text-uppercase text-muted small mb-2">Required Skills</h6>
+        <div class="mb-4">
+          {% for skill in placement.skills_list %}
+            <span class="badge bg-primary bg-opacity-10 text-primary border border-primary
+                         border-opacity-25 me-1 mb-1 px-3 py-2">
+              {{ skill }}
+            </span>
+          {% endfor %}
+        </div>
+        {% endif %}
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Sidebar -->
+  <div class="col-lg-4">
+
+    <!-- Key details card -->
+    <div class="card border-0 shadow-sm mb-3">
+      <div class="card-header fw-semibold bg-light">
+        <i class="bi bi-info-circle me-2"></i>Details
+      </div>
+      <ul class="list-group list-group-flush">
+        <li class="list-group-item d-flex justify-content-between">
+          <span class="text-muted">Location</span>
+          <span class="fw-semibold">{{ placement.location }}</span>
+        </li>
+        <li class="list-group-item d-flex justify-content-between">
+          <span class="text-muted">Start Date</span>
+          <span class="fw-semibold">{{ placement.start_date|date:"d M Y" }}</span>
+        </li>
+        <li class="list-group-item d-flex justify-content-between">
+          <span class="text-muted">End Date</span>
+          <span class="fw-semibold">{{ placement.end_date|date:"d M Y" }}</span>
+        </li>
+        <li class="list-group-item d-flex justify-content-between">
+          <span class="text-muted">Slots Available</span>
+          <span class="fw-semibold
+            {% if placement.is_full %}text-danger{% else %}text-success{% endif %}">
+            {{ placement.slots_remaining }} / {{ placement.slots_available }}
+          </span>
+        </li>
+        <li class="list-group-item d-flex justify-content-between">
+          <span class="text-muted">Posted</span>
+          <span class="fw-semibold">{{ placement.created_at|date:"d M Y" }}</span>
+        </li>
+      </ul>
+    </div>
+
+    <!-- Application action card (students only) -->
+    {% if request.user.is_student %}
+    <div class="card border-0 shadow-sm">
+      <div class="card-body text-center p-4">
+        {% if user_application %}
+          <i class="bi bi-clipboard2-check fs-1 text-success d-block mb-2"></i>
+          <h6 class="fw-bold">Already Applied</h6>
+          <p class="text-muted small mb-3">
+            Status:
+            {% if user_application.status == 'accepted' %}
+              <span class="badge bg-success">Accepted</span>
+            {% elif user_application.status == 'rejected' %}
+              <span class="badge bg-danger">Rejected</span>
+            {% else %}
+              <span class="badge bg-warning text-dark">Pending Review</span>
+            {% endif %}
+          </p>
+          <a href="{% url 'placements:my_applications' %}"
+             class="btn btn-outline-primary w-100">
+            View My Applications
+          </a>
+        {% elif placement.status == 'closed' %}
+          <i class="bi bi-lock fs-1 text-muted d-block mb-2"></i>
+          <p class="text-muted">This placement is closed.</p>
+        {% else %}
+          <i class="bi bi-send fs-1 text-primary d-block mb-2"></i>
+          <h6 class="fw-bold mb-3">Interested in this role?</h6>
+          <a href="{% url 'placements:apply' placement.pk %}"
+             class="btn btn-primary w-100 btn-lg">
+            Apply Now
+          </a>
+        {% endif %}
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- Coordinator quick actions -->
+    {% if request.user.is_coordinator %}
+    <div class="card border-0 shadow-sm">
+      <div class="card-header fw-semibold bg-light">Coordinator Actions</div>
+      <div class="card-body d-grid gap-2">
+        <a href="{% url 'placements:edit' placement.pk %}"
+           class="btn btn-outline-primary">
+          <i class="bi bi-pencil me-1"></i> Edit Placement
+        </a>
+        <a href="{% url 'placements:coordinator_app_list' placement.pk %}"
+           class="btn btn-outline-info">
+          <i class="bi bi-people me-1"></i>
+          View Applications ({{ placement.applications.count }})
+        </a>
+        <form method="post" action="{% url 'placements:close' placement.pk %}">
+          {% csrf_token %}
+          <button class="btn w-100 {% if placement.status == 'open' %}btn-outline-warning{% else %}btn-outline-success{% endif %}">
+            {% if placement.status == 'open' %}
+              <i class="bi bi-lock me-1"></i> Close Placement
+            {% else %}
+              <i class="bi bi-lock-open me-1"></i> Re-open Placement
+            {% endif %}
+          </button>
+        </form>
+      </div>
+    </div>
+    {% endif %}
+
+  </div>
+</div>
+{% endblock %}

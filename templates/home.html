@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+{% block title %}Welcome — InternTrack{% endblock %}
+
+{% block content %}
+<!-- Hero -->
+<div class="py-5 text-center">
+  <div class="mb-4">
+    <div class="d-inline-flex align-items-center justify-content-center rounded-circle bg-warning"
+         style="width:80px;height:80px;font-size:2.5rem;">
+      <i class="bi bi-briefcase-fill text-dark"></i>
+    </div>
+  </div>
+  <h1 class="fw-bold display-5 mb-2">InternTrack</h1>
+  <p class="lead text-muted mb-4 mx-auto" style="max-width:560px;">
+    A complete web-based system for managing student internship placements,
+    daily logbooks, supervisor assessments, and coordinator reporting —
+    all in one place.
+  </p>
+  <div class="d-flex gap-3 justify-content-center">
+    <a href="{% url 'accounts:register' %}" class="btn btn-warning btn-lg fw-bold px-4">
+      <i class="bi bi-person-plus-fill me-2"></i>Get Started
+    </a>
+    <a href="{% url 'accounts:login' %}" class="btn btn-outline-secondary btn-lg px-4">
+      <i class="bi bi-box-arrow-in-right me-2"></i>Sign In
+    </a>
+  </div>
+</div>
+
+<hr class="my-2">
+
+<!-- Feature cards -->
+<div class="row g-4 py-4">
+  <div class="col-md-6 col-lg-3">
+    <div class="card border-0 shadow-sm h-100 text-center p-3">
+      <div class="card-body">
+        <div class="rounded-circle bg-primary bg-opacity-10 d-inline-flex align-items-center
+                    justify-content-center mb-3" style="width:56px;height:56px;font-size:1.5rem;">
+          <i class="bi bi-building text-primary"></i>
+        </div>
+        <h6 class="fw-bold">Placement Management</h6>
+        <p class="text-muted small mb-0">
+          Coordinators post openings, students apply, and approvals are tracked end-to-end.
+        </p>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-6 col-lg-3">
+    <div class="card border-0 shadow-sm h-100 text-center p-3">
+      <div class="card-body">
+        <div class="rounded-circle bg-success bg-opacity-10 d-inline-flex align-items-center
+                    justify-content-center mb-3" style="width:56px;height:56px;font-size:1.5rem;">
+          <i class="bi bi-journal-text text-success"></i>
+        </div>
+        <h6 class="fw-bold">Digital Logbook</h6>
+        <p class="text-muted small mb-0">
+          Students log daily activities; supervisors review and approve entries in real time.
+        </p>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-6 col-lg-3">
+    <div class="card border-0 shadow-sm h-100 text-center p-3">
+      <div class="card-body">
+        <div class="rounded-circle bg-warning bg-opacity-10 d-inline-flex align-items-center
+                    justify-content-center mb-3" style="width:56px;height:56px;font-size:1.5rem;">
+          <i class="bi bi-clipboard2-check text-warning"></i>
+        </div>
+        <h6 class="fw-bold">Structured Assessments</h6>
+        <p class="text-muted small mb-0">
+          Supervisors evaluate interns on 10 criteria for mid-term and final assessments.
+        </p>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-6 col-lg-3">
+    <div class="card border-0 shadow-sm h-100 text-center p-3">
+      <div class="card-body">
+        <div class="rounded-circle bg-info bg-opacity-10 d-inline-flex align-items-center
+                    justify-content-center mb-3" style="width:56px;height:56px;font-size:1.5rem;">
+          <i class="bi bi-download text-info"></i>
+        </div>
+        <h6 class="fw-bold">Reports & Analytics</h6>
+        <p class="text-muted small mb-0">
+          Export individual student reports and aggregate statistics as PDF or CSV.
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Roles section -->
+<div class="card border-0 shadow-sm p-4 mt-2 mb-4">
+  <h5 class="fw-bold text-center mb-4">Built for Everyone</h5>
+  <div class="row g-3 text-center">
+    <div class="col-md-4">
+      <i class="bi bi-mortarboard-fill fs-2 text-primary d-block mb-2"></i>
+      <h6 class="fw-bold">Students</h6>
+      <p class="small text-muted mb-0">
+        Apply for placements, submit daily logs, track assessments, and stay connected.
+      </p>
+    </div>
+    <div class="col-md-4">
+      <i class="bi bi-person-badge-fill fs-2 text-success d-block mb-2"></i>
+      <h6 class="fw-bold">Industry Supervisors</h6>
+      <p class="small text-muted mb-0">
+        Review logbooks, approve activities, and formally evaluate intern performance.
+      </p>
+    </div>
+    <div class="col-md-4">
+      <i class="bi bi-speedometer2 fs-2 text-warning d-block mb-2"></i>
+      <h6 class="fw-bold">School Coordinators</h6>
+      <p class="small text-muted mb-0">
+        Oversee all placements, monitor student progress, and generate comprehensive reports.
+      </p>
+    </div>
+  </div>
+</div>
+{% endblock %}

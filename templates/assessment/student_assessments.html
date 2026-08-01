@@ -1,0 +1,169 @@
+{% extends "base.html" %}
+{% block title %}My Assessments — InternTrack{% endblock %}
+{% block nav_assessment %}active{% endblock %}
+
+{% block content %}
+<h4 class="fw-bold mb-4">
+  <i class="bi bi-star-fill me-2 text-warning"></i>My Assessments
+</h4>
+
+{% if not application %}
+<div class="alert alert-info">
+  <i class="bi bi-info-circle me-2"></i>
+  You have not been placed yet. Assessments will appear here once your
+  supervisor submits an evaluation.
+</div>
+{% else %}
+
+{% if not mid_term and not final %}
+<div class="alert alert-secondary">
+  <i class="bi bi-hourglass-split me-2"></i>
+  Your supervisor has not submitted any assessments yet. Check back later.
+</div>
+{% endif %}
+
+<div class="row g-4">
+
+  <!-- Mid-term -->
+  <div class="col-md-6">
+    <div class="card border-0 shadow-sm h-100
+      {% if mid_term and mid_term.is_submitted %}border-top border-primary border-4
+      {% else %}border-top border-secondary border-4{% endif %}">
+      <div class="card-header fw-semibold d-flex justify-content-between">
+        <span><i class="bi bi-clipboard2 me-2"></i>Mid-Term Assessment</span>
+        {% if mid_term and mid_term.is_submitted %}
+          <span class="badge bg-primary">Submitted</span>
+        {% elif mid_term %}
+          <span class="badge bg-warning text-dark">Draft</span>
+        {% else %}
+          <span class="badge bg-secondary">Pending</span>
+        {% endif %}
+      </div>
+      <div class="card-body">
+        {% if mid_term and mid_term.is_submitted %}
+          <div class="text-center py-3">
+            <div class="fw-bold text-primary" style="font-size:3rem;line-height:1;">
+              {{ mid_term.percentage }}%
+            </div>
+            <div class="text-muted small mb-3">
+              {{ mid_term.total_score }} / {{ mid_term.max_possible }} points
+            </div>
+            <span class="badge fs-5 px-4 py-2
+              {% if mid_term.grade_letter == 'A' %}bg-success
+              {% elif mid_term.grade_letter == 'B' %}bg-primary
+              {% elif mid_term.grade_letter == 'C' %}bg-info text-dark
+              {% elif mid_term.grade_letter == 'D' %}bg-warning text-dark
+              {% else %}bg-danger{% endif %}">
+              Grade {{ mid_term.grade_letter }}
+            </span>
+
+            {% if mid_term.summary %}
+            <div class="mt-3">
+              <span class="badge bg-{{ mid_term.summary.recommendation_colour }} px-3 py-2">
+                {{ mid_term.summary.get_recommendation_display }}
+              </span>
+            </div>
+
+            {% if mid_term.summary.student_acknowledged %}
+            <div class="text-success small mt-2">
+              <i class="bi bi-check-circle me-1"></i>
+              Acknowledged {{ mid_term.summary.student_acknowledged_at|date:"d M Y" }}
+            </div>
+            {% endif %}
+            {% endif %}
+          </div>
+          <div class="d-grid gap-2 mt-3">
+            <a href="{% url 'assessment:detail' mid_term.pk %}"
+               class="btn btn-outline-primary">
+              <i class="bi bi-eye me-1"></i> View Full Assessment
+            </a>
+            {% if mid_term.summary and not mid_term.summary.student_acknowledged %}
+            <a href="{% url 'assessment:acknowledge' mid_term.pk %}"
+               class="btn btn-success btn-sm">
+              <i class="bi bi-check2-square me-1"></i> Acknowledge
+            </a>
+            {% endif %}
+          </div>
+        {% else %}
+          <div class="text-center py-4 text-muted">
+            <i class="bi bi-hourglass-split fs-1 d-block mb-2"></i>
+            <p class="mb-0">Awaiting supervisor submission</p>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Final -->
+  <div class="col-md-6">
+    <div class="card border-0 shadow-sm h-100
+      {% if final and final.is_submitted %}border-top border-success border-4
+      {% else %}border-top border-secondary border-4{% endif %}">
+      <div class="card-header fw-semibold d-flex justify-content-between">
+        <span><i class="bi bi-clipboard2-check me-2"></i>Final Assessment</span>
+        {% if final and final.is_submitted %}
+          <span class="badge bg-success">Submitted</span>
+        {% elif final %}
+          <span class="badge bg-warning text-dark">Draft</span>
+        {% else %}
+          <span class="badge bg-secondary">Pending</span>
+        {% endif %}
+      </div>
+      <div class="card-body">
+        {% if final and final.is_submitted %}
+          <div class="text-center py-3">
+            <div class="fw-bold text-success" style="font-size:3rem;line-height:1;">
+              {{ final.percentage }}%
+            </div>
+            <div class="text-muted small mb-3">
+              {{ final.total_score }} / {{ final.max_possible }} points
+            </div>
+            <span class="badge fs-5 px-4 py-2
+              {% if final.grade_letter == 'A' %}bg-success
+              {% elif final.grade_letter == 'B' %}bg-primary
+              {% elif final.grade_letter == 'C' %}bg-info text-dark
+              {% elif final.grade_letter == 'D' %}bg-warning text-dark
+              {% else %}bg-danger{% endif %}">
+              Grade {{ final.grade_letter }}
+            </span>
+
+            {% if final.summary %}
+            <div class="mt-3">
+              <span class="badge bg-{{ final.summary.recommendation_colour }} px-3 py-2">
+                {{ final.summary.get_recommendation_display }}
+              </span>
+            </div>
+
+            {% if final.summary.student_acknowledged %}
+            <div class="text-success small mt-2">
+              <i class="bi bi-check-circle me-1"></i>
+              Acknowledged {{ final.summary.student_acknowledged_at|date:"d M Y" }}
+            </div>
+            {% endif %}
+            {% endif %}
+          </div>
+          <div class="d-grid gap-2 mt-3">
+            <a href="{% url 'assessment:detail' final.pk %}"
+               class="btn btn-outline-success">
+              <i class="bi bi-eye me-1"></i> View Full Assessment
+            </a>
+            {% if final.summary and not final.summary.student_acknowledged %}
+            <a href="{% url 'assessment:acknowledge' final.pk %}"
+               class="btn btn-success btn-sm">
+              <i class="bi bi-check2-square me-1"></i> Acknowledge
+            </a>
+            {% endif %}
+          </div>
+        {% else %}
+          <div class="text-center py-4 text-muted">
+            <i class="bi bi-hourglass-split fs-1 d-block mb-2"></i>
+            <p class="mb-0">Awaiting supervisor submission</p>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endif %}
+{% endblock %}

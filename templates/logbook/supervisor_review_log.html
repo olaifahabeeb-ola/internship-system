@@ -1,0 +1,167 @@
+{% extends "base.html" %}
+{% block title %}Review Log — {{ entry.date }} — InternTrack{% endblock %}
+{% block nav_sv_logs %}active{% endblock %}
+
+{% block content %}
+<div class="mb-3">
+  <a href="{% url 'logbook:review_list' %}" class="text-decoration-none text-muted">
+    <i class="bi bi-arrow-left me-1"></i> Back to Pending Reviews
+  </a>
+</div>
+
+<div class="row g-4">
+
+  <!-- Left: full entry details -->
+  <div class="col-lg-7">
+    <div class="card border-0 shadow-sm mb-3">
+      <div class="card-header bg-light d-flex justify-content-between align-items-center">
+        <span class="fw-semibold">
+          <i class="bi bi-journal-text me-2"></i>
+          Log Entry — {{ entry.date|date:"l, d F Y" }}
+        </span>
+        <span class="badge bg-warning text-dark">Pending Review</span>
+      </div>
+      <div class="card-body p-4">
+
+        <!-- Student info row -->
+        <div class="d-flex align-items-center gap-3 mb-4 p-3 bg-light rounded">
+          <div class="rounded-circle bg-primary text-white d-flex align-items-center
+                      justify-content-center fw-bold"
+               style="width:42px;height:42px;font-size:1rem;">
+            {{ entry.student.first_name|first }}{{ entry.student.last_name|first }}
+          </div>
+          <div>
+            <div class="fw-bold">{{ entry.student.get_full_name }}</div>
+            <div class="small text-muted">
+              {{ entry.student.matric_number|default:"—" }} &nbsp;|&nbsp;
+              {{ entry.placement.company_name }}
+            </div>
+          </div>
+          <div class="ms-auto text-end small">
+            <span class="text-muted">Hours</span><br>
+            <strong class="fs-5">{{ entry.hours_worked }}</strong>
+          </div>
+        </div>
+
+        <h6 class="text-uppercase text-muted small fw-bold mb-2">Activities Performed</h6>
+        <p class="mb-4" style="white-space:pre-line;">{{ entry.activity_description }}</p>
+
+        {% if entry.skills_gained %}
+        <h6 class="text-uppercase text-muted small fw-bold mb-2">Skills Gained / Applied</h6>
+        <p class="mb-4 text-muted">{{ entry.skills_gained }}</p>
+        {% endif %}
+
+        {% if entry.attachment %}
+        <div class="d-flex align-items-center gap-2 p-3 border rounded">
+          <i class="bi bi-paperclip text-primary fs-5"></i>
+          <div>
+            <div class="small fw-semibold">Attachment</div>
+            <a href="{{ entry.attachment.url }}" target="_blank" class="small">
+              Download / View File
+            </a>
+          </div>
+        </div>
+        {% endif %}
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Right: review form -->
+  <div class="col-lg-5">
+    <div class="card border-0 shadow-sm">
+      <div class="card-header fw-semibold bg-primary text-white">
+        <i class="bi bi-clipboard2-check me-2"></i>Your Decision
+      </div>
+      <div class="card-body p-4">
+        <form method="post" novalidate>
+          {% csrf_token %}
+
+          <!-- Status radio -->
+          <div class="mb-4">
+            <label class="form-label fw-semibold">Decision *</label>
+            <div class="d-flex gap-3">
+              <div class="form-check">
+                <input class="form-check-input" type="radio" name="status"
+                       id="st_approve" value="approved"
+                       {% if form.status.value == 'approved' %}checked{% endif %}>
+                <label class="form-check-label fw-semibold text-success" for="st_approve">
+                  <i class="bi bi-check-circle me-1"></i>Approve
+                </label>
+              </div>
+              <div class="form-check">
+                <input class="form-check-input" type="radio" name="status"
+                       id="st_reject" value="rejected"
+                       {% if form.status.value == 'rejected' %}checked{% endif %}>
+                <label class="form-check-label fw-semibold text-danger" for="st_reject">
+                  <i class="bi bi-x-circle me-1"></i>Reject
+                </label>
+              </div>
+            </div>
+            {% for e in form.status.errors %}
+              <div class="text-danger small mt-1">{{ e }}</div>
+            {% endfor %}
+          </div>
+
+          <!-- Comment -->
+          <div class="mb-4">
+            <label class="form-label fw-semibold">
+              Comment
+              <span class="text-danger" id="commentRequired" style="display:none;">*</span>
+              <span class="text-muted fw-normal" id="commentOptional">(optional)</span>
+            </label>
+            <textarea name="supervisor_comment" rows="4"
+                      class="form-control {% if form.supervisor_comment.errors %}is-invalid{% endif %}"
+                      id="commentBox"
+                      placeholder="Provide feedback to the student...">{{ form.supervisor_comment.value|default:'' }}</textarea>
+            {% for e in form.supervisor_comment.errors %}
+              <div class="invalid-feedback">{{ e }}</div>
+            {% endfor %}
+            <div class="form-text" id="rejectHint" style="display:none;">
+              A comment is required when rejecting.
+            </div>
+          </div>
+
+          <div class="d-grid">
+            <button type="submit" class="btn btn-primary btn-lg">
+              <i class="bi bi-send me-1"></i> Submit Decision
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Quick navigation -->
+    <div class="card border-0 shadow-sm mt-3">
+      <div class="card-body">
+        <a href="{% url 'logbook:supervisor_student_logbook' entry.application.pk %}"
+           class="btn btn-outline-secondary w-100 btn-sm">
+          <i class="bi bi-journals me-1"></i>
+          View {{ entry.student.first_name }}'s Full Logbook
+        </a>
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  // Show "required" label on comment when Reject is selected
+  const radios        = document.querySelectorAll('input[name="status"]');
+  const commentReq    = document.getElementById('commentRequired');
+  const commentOpt    = document.getElementById('commentOptional');
+  const rejectHint    = document.getElementById('rejectHint');
+
+  function updateComment() {
+    const rejected = document.getElementById('st_reject').checked;
+    commentReq.style.display  = rejected ? 'inline' : 'none';
+    commentOpt.style.display  = rejected ? 'none'   : 'inline';
+    rejectHint.style.display  = rejected ? 'block'  : 'none';
+  }
+
+  radios.forEach(r => r.addEventListener('change', updateComment));
+  updateComment();
+</script>
+{% endblock %}

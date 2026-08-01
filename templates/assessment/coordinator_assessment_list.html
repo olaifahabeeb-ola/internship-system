@@ -1,0 +1,163 @@
+{% extends "base.html" %}
+{% block title %}All Assessments — InternTrack{% endblock %}
+{% block nav_co_home %}active{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h4 class="fw-bold mb-0">
+    <i class="bi bi-clipboard2-data me-2 text-primary"></i>All Assessments
+  </h4>
+  <a href="{% url 'assessment:coordinator_stats' %}" class="btn btn-outline-primary btn-sm">
+    <i class="bi bi-bar-chart me-1"></i> View Statistics
+  </a>
+</div>
+
+<!-- Quick stats -->
+<div class="row g-3 mb-4">
+  <div class="col-sm-4">
+    <div class="card border-0 shadow-sm text-center">
+      <div class="card-body py-3">
+        <div class="fw-bold fs-3">{{ total }}</div>
+        <div class="small text-muted">Total</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-sm-4">
+    <div class="card border-0 shadow-sm text-center">
+      <div class="card-body py-3">
+        <div class="fw-bold fs-3 text-success">{{ submitted }}</div>
+        <div class="small text-muted">Submitted</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-sm-4">
+    <div class="card border-0 shadow-sm text-center">
+      <div class="card-body py-3">
+        <div class="fw-bold fs-3 text-primary">{{ avg_score }}</div>
+        <div class="small text-muted">Avg Score (pts)</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Filter form -->
+<div class="card border-0 shadow-sm mb-4">
+  <div class="card-body py-3">
+    <form method="get" class="row g-2 align-items-end">
+      <div class="col-sm-3">
+        <label class="form-label small fw-semibold mb-1">Student Name</label>
+        <input type="text" name="student_name" class="form-control form-control-sm"
+               placeholder="Search name…"
+               value="{{ form.student_name.value|default:'' }}">
+      </div>
+      <div class="col-sm-2">
+        <label class="form-label small fw-semibold mb-1">Company</label>
+        <input type="text" name="company" class="form-control form-control-sm"
+               placeholder="Company…"
+               value="{{ form.company.value|default:'' }}">
+      </div>
+      <div class="col-sm-2">
+        <label class="form-label small fw-semibold mb-1">Type</label>
+        <select name="assessment_type" class="form-select form-select-sm">
+          {% for val, label in form.fields.assessment_type.choices %}
+            <option value="{{ val }}"
+              {% if form.assessment_type.value == val %}selected{% endif %}>
+              {{ label }}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-sm-2">
+        <label class="form-label small fw-semibold mb-1">Status</label>
+        <select name="status" class="form-select form-select-sm">
+          {% for val, label in form.fields.status.choices %}
+            <option value="{{ val }}"
+              {% if form.status.value == val %}selected{% endif %}>
+              {{ label }}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-auto">
+        <button type="submit" class="btn btn-sm btn-primary">Filter</button>
+        <a href="{% url 'assessment:coordinator_list' %}"
+           class="btn btn-sm btn-outline-secondary ms-1">Clear</a>
+      </div>
+    </form>
+  </div>
+</div>
+
+{% if assessments %}
+<div class="card border-0 shadow-sm">
+  <div class="table-responsive">
+    <table class="table table-hover align-middle mb-0 small">
+      <thead class="table-light">
+        <tr>
+          <th>Student</th>
+          <th>Company</th>
+          <th>Supervisor</th>
+          <th class="text-center">Type</th>
+          <th class="text-center">Score</th>
+          <th class="text-center">Recommendation</th>
+          <th class="text-center">Status</th>
+          <th class="text-center">Date</th>
+          <th class="text-center">View</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for a in assessments %}
+        <tr>
+          <td>
+            <div class="fw-semibold">{{ a.student.get_full_name }}</div>
+            <div class="text-muted" style="font-size:0.75rem;">
+              {{ a.student.matric_number|default:"" }}
+            </div>
+          </td>
+          <td>{{ a.placement.company_name }}</td>
+          <td>{{ a.supervisor.get_full_name }}</td>
+          <td class="text-center">
+            <span class="badge {% if a.assessment_type == 'mid_term' %}bg-info text-dark{% else %}bg-primary{% endif %}">
+              {{ a.get_assessment_type_display }}
+            </span>
+          </td>
+          <td class="text-center fw-bold">
+            {% if a.is_submitted %}
+              {{ a.percentage }}%
+            {% else %}—{% endif %}
+          </td>
+          <td class="text-center">
+            {% if a.summary %}
+              <span class="badge bg-{{ a.summary.recommendation_colour }}">
+                {{ a.summary.get_recommendation_display }}
+              </span>
+            {% else %}—{% endif %}
+          </td>
+          <td class="text-center">
+            {% if a.is_submitted %}
+              <span class="badge bg-success">Submitted</span>
+            {% else %}
+              <span class="badge bg-warning text-dark">Draft</span>
+            {% endif %}
+          </td>
+          <td class="text-center text-muted">
+            {{ a.submission_date|date:"d M Y" }}
+          </td>
+          <td class="text-center">
+            <a href="{% url 'assessment:detail' a.pk %}"
+               class="btn btn-sm btn-outline-primary">
+              <i class="bi bi-eye"></i>
+            </a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% else %}
+<div class="text-center py-5 text-muted">
+  <i class="bi bi-clipboard2-x fs-1 d-block mb-3"></i>
+  <h5>No assessments found</h5>
+</div>
+{% endif %}
+{% endblock %}

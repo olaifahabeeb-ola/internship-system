@@ -1,0 +1,184 @@
+{% extends "base.html" %}
+{% block title %}{{ action }} Placement — InternTrack{% endblock %}
+{% block nav_co_placements %}active{% endblock %}
+
+{% block content %}
+<div class="mb-3">
+  <a href="{% url 'placements:coordinator_list' %}" class="text-decoration-none text-muted">
+    <i class="bi bi-arrow-left me-1"></i> Back to Placements
+  </a>
+</div>
+
+<div class="row justify-content-center">
+<div class="col-lg-8">
+  <div class="card border-0 shadow-sm">
+    <div class="card-header bg-light fw-semibold py-3 d-flex justify-content-between align-items-center">
+      <span><i class="bi bi-building-add me-2"></i>{{ action }} Placement</span>
+      {% if dept %}
+        <span class="badge bg-primary fs-6 px-3">
+          <i class="bi bi-mortarboard me-1"></i>{{ dept }}
+        </span>
+      {% endif %}
+    </div>
+
+    <!--
+      Read-only company/supervisor summary — NOT part of the form.
+      This placement originated as a supervisor's own submission
+      (company_name and assigned_supervisor are permanently locked
+      once approved, to guarantee they're always correctly paired —
+      see PlacementForm in forms.py). Shown here from the model
+      instance directly, purely for the coordinator's reference while
+      editing everything else.
+    -->
+    {% if placement %}
+    <div class="px-4 pt-3">
+      <div class="alert alert-light border d-flex flex-wrap gap-4 mb-0 py-2">
+        <div>
+          <div class="text-muted small">Company</div>
+          <div class="fw-semibold">{{ placement.company_name }}</div>
+        </div>
+        <div>
+          <div class="text-muted small">Assigned Supervisor</div>
+          <div class="fw-semibold">
+            {% if placement.assigned_supervisor %}
+              {{ placement.assigned_supervisor.get_full_name }}
+            {% else %}
+              <span class="text-muted">Not set</span>
+            {% endif %}
+          </div>
+        </div>
+        <div class="ms-auto align-self-center small text-muted">
+          <i class="bi bi-lock-fill me-1"></i>Locked — set at submission
+        </div>
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- Department notice -->
+    {% if dept %}
+    <div class="alert alert-info mb-0 rounded-0 border-0 border-bottom py-2 px-4 mt-3">
+      <i class="bi bi-info-circle me-2"></i>
+      This placement is posted for <strong>{{ dept }}</strong> students only.
+    </div>
+    {% endif %}
+
+    <div class="card-body p-4">
+      <form method="post" novalidate>
+        {% csrf_token %}
+
+        <div class="row g-3">
+
+          <!-- Title -->
+          <div class="col-12">
+            <label class="form-label fw-semibold">Job / Role Title *</label>
+            <input type="text" name="title"
+                   class="form-control {% if form.title.errors %}is-invalid{% endif %}"
+                   value="{{ form.title.value|default:'' }}"
+                   placeholder="e.g. Software Development Intern">
+            {% for e in form.title.errors %}
+              <div class="invalid-feedback">{{ e }}</div>{% endfor %}
+          </div>
+
+          <!-- Location -->
+          <div class="col-12">
+            <label class="form-label fw-semibold">Location *</label>
+            <input type="text" name="location"
+                   class="form-control {% if form.location.errors %}is-invalid{% endif %}"
+                   value="{{ form.location.value|default:'' }}"
+                   placeholder="e.g. Lagos, Victoria Island">
+            {% for e in form.location.errors %}
+              <div class="invalid-feedback">{{ e }}</div>{% endfor %}
+          </div>
+
+          <!-- Description -->
+          <div class="col-12">
+            <label class="form-label fw-semibold">Description *</label>
+            <textarea name="description" rows="5"
+                      class="form-control {% if form.description.errors %}is-invalid{% endif %}"
+                      placeholder="Describe the role, responsibilities, and what the intern will learn...">{{ form.description.value|default:'' }}</textarea>
+            {% for e in form.description.errors %}
+              <div class="invalid-feedback">{{ e }}</div>{% endfor %}
+          </div>
+
+          <!-- Required Skills -->
+          <div class="col-12">
+            <label class="form-label fw-semibold">Required Skills</label>
+            <input type="text" name="required_skills" class="form-control"
+                   value="{{ form.required_skills.value|default:'' }}"
+                   placeholder="Python, Excel, Communication, Teamwork">
+            <div class="form-text">Separate skills with commas.</div>
+          </div>
+
+          <!-- Dates + Slots -->
+          <div class="col-md-4">
+            <label class="form-label fw-semibold">Start Date *</label>
+            <input type="date" name="start_date"
+                   class="form-control {% if form.start_date.errors %}is-invalid{% endif %}"
+                   value="{{ form.start_date.value|default:'' }}">
+            {% for e in form.start_date.errors %}
+              <div class="invalid-feedback">{{ e }}</div>{% endfor %}
+          </div>
+
+          <div class="col-md-4">
+            <label class="form-label fw-semibold">End Date *</label>
+            <input type="date" name="end_date"
+                   class="form-control {% if form.end_date.errors %}is-invalid{% endif %}"
+                   value="{{ form.end_date.value|default:'' }}">
+            {% for e in form.end_date.errors %}
+              <div class="invalid-feedback">{{ e }}</div>{% endfor %}
+          </div>
+
+          <div class="col-md-4">
+            <label class="form-label fw-semibold">Slots *</label>
+            <input type="number" name="slots_available" min="1"
+                   class="form-control {% if form.slots_available.errors %}is-invalid{% endif %}"
+                   value="{{ form.slots_available.value|default:'1' }}">
+            {% for e in form.slots_available.errors %}
+              <div class="invalid-feedback">{{ e }}</div>{% endfor %}
+          </div>
+
+          <div class="col-12">
+            <hr>
+            <h6 class="fw-semibold text-primary mb-3">
+              <i class="bi bi-funnel me-2"></i>Audience
+            </h6>
+          </div>
+
+          <div class="col-12">
+            <label class="form-label fw-semibold">Target Department</label>
+            <select name="target_department" class="form-select"
+                    {% if form.target_department.field.disabled %}disabled{% endif %}>
+              {% for val, label in form.fields.target_department.choices %}
+                <option value="{{ val }}"
+                  {% if form.target_department.value == val or form.fields.target_department.initial == val %}selected{% endif %}>
+                  {{ label }}
+                </option>
+              {% endfor %}
+            </select>
+            {% if form.target_department.help_text %}
+              <div class="form-text">{{ form.target_department.help_text }}</div>
+            {% endif %}
+          </div>
+
+        </div><!-- /row -->
+
+        {% if form.non_field_errors %}
+          <div class="alert alert-danger mt-3">
+            {% for e in form.non_field_errors %}{{ e }}<br>{% endfor %}
+          </div>
+        {% endif %}
+
+        <div class="d-flex gap-2 mt-4">
+          <button type="submit" class="btn btn-primary px-4">
+            <i class="bi bi-save me-1"></i> {{ action }} Placement
+          </button>
+          <a href="{% url 'placements:coordinator_list' %}"
+             class="btn btn-outline-secondary">Cancel</a>
+        </div>
+
+      </form>
+    </div>
+  </div>
+</div>
+</div>
+{% endblock %}

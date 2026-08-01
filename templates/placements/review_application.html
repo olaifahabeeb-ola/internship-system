@@ -1,0 +1,242 @@
+{% extends "base.html" %}
+{% block title %}Review Application — InternTrack{% endblock %}
+{% block nav_co_apps %}active{% endblock %}
+
+{% block content %}
+<div class="mb-3">
+  <a href="{% url 'placements:coordinator_app_list' application.placement.pk %}"
+     class="text-decoration-none text-muted">
+    <i class="bi bi-arrow-left me-1"></i> Back to Applications
+  </a>
+</div>
+
+{% if slot_warning %}
+<div class="alert alert-warning d-flex gap-2 align-items-center">
+  <i class="bi bi-exclamation-triangle-fill fs-5"></i>
+  <span>{{ slot_warning }}</span>
+</div>
+{% endif %}
+
+<div class="row g-4">
+
+  <!-- Left: Student & application details -->
+  <div class="col-lg-7">
+
+    <!-- Student info -->
+    <div class="card border-0 shadow-sm mb-3">
+      <div class="card-header bg-light fw-semibold">
+        <i class="bi bi-person-circle me-2"></i>Student Details
+      </div>
+      <div class="card-body">
+        <div class="row g-2 small">
+          <div class="col-sm-6">
+            <span class="text-muted">Name</span><br>
+            <strong>{{ application.student.get_full_name }}</strong>
+          </div>
+          <div class="col-sm-6">
+            <span class="text-muted">Email</span><br>
+            <strong>{{ application.student.email }}</strong>
+          </div>
+          <div class="col-sm-6">
+            <span class="text-muted">Matric Number</span><br>
+            <strong>{{ application.student.matric_number|default:"—" }}</strong>
+          </div>
+          <div class="col-sm-6">
+            <span class="text-muted">Department</span><br>
+            <strong>{{ application.student.department|default:"—" }}</strong>
+          </div>
+          <div class="col-sm-6">
+            <span class="text-muted">Level</span><br>
+            <strong>{{ application.student.level|default:"—" }}</strong>
+          </div>
+          <div class="col-sm-6">
+            <span class="text-muted">Applied On</span><br>
+            <strong>{{ application.applied_at|date:"d M Y, H:i" }}</strong>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CV -->
+    {% if application.cv %}
+    <div class="card border-0 shadow-sm mb-3">
+      <div class="card-body d-flex align-items-center justify-content-between">
+        <span class="fw-semibold"><i class="bi bi-file-earmark-pdf me-2 text-danger"></i>CV Submitted</span>
+        <a href="{{ application.cv.url }}" target="_blank" class="btn btn-outline-primary btn-sm">
+          <i class="bi bi-download me-1"></i> Download CV
+        </a>
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- Cover letter -->
+    {% if application.cover_letter %}
+    <div class="card border-0 shadow-sm">
+      <div class="card-header bg-light fw-semibold">
+        <i class="bi bi-chat-left-text me-2"></i>Cover Letter
+      </div>
+      <div class="card-body">
+        <p class="mb-0" style="white-space: pre-line;">{{ application.cover_letter }}</p>
+      </div>
+    </div>
+    {% else %}
+    <div class="card border-0 shadow-sm">
+      <div class="card-body text-muted small">
+        <i class="bi bi-dash-circle me-1"></i>No cover letter submitted.
+      </div>
+    </div>
+    {% endif %}
+
+  </div>
+
+  <!-- Right: Decision form or current status -->
+  <div class="col-lg-5">
+
+    <!-- Placement info -->
+    <div class="card border-0 shadow-sm mb-3">
+      <div class="card-header bg-light fw-semibold">
+        <i class="bi bi-building me-2"></i>Placement
+      </div>
+      <ul class="list-group list-group-flush small">
+        <li class="list-group-item d-flex justify-content-between">
+          <span class="text-muted">Title</span>
+          <span class="fw-semibold">{{ application.placement.title }}</span>
+        </li>
+        <li class="list-group-item d-flex justify-content-between">
+          <span class="text-muted">Company</span>
+          <span class="fw-semibold">{{ application.placement.company_name }}</span>
+        </li>
+        <li class="list-group-item d-flex justify-content-between">
+          <span class="text-muted">Slots remaining</span>
+          <span class="fw-semibold {% if application.placement.is_full %}text-danger{% else %}text-success{% endif %}">
+            {{ application.placement.slots_remaining }} / {{ application.placement.slots_available }}
+          </span>
+        </li>
+      </ul>
+    </div>
+
+    <!-- Current status (if already reviewed) -->
+    {% if application.status != 'pending' %}
+    <div class="card border-0 shadow-sm mb-3">
+      <div class="card-header bg-light fw-semibold">Current Status</div>
+      <div class="card-body text-center py-3">
+        {% if application.status == 'accepted' %}
+          <span class="badge bg-success fs-5 px-4 py-2 mb-2 d-inline-block">Accepted</span>
+        {% else %}
+          <span class="badge bg-danger fs-5 px-4 py-2 mb-2 d-inline-block">Rejected</span>
+        {% endif %}
+        {% if application.supervisor %}
+          <p class="small text-muted mt-2 mb-0">
+            Supervisor: <strong>{{ application.supervisor.get_full_name }}</strong>
+            ({{ application.supervisor.company_name|default:"No company" }})
+          </p>
+        {% endif %}
+        {% if application.review_notes %}
+          <p class="small text-muted mt-2 mb-0">
+            <em>"{{ application.review_notes }}"</em>
+          </p>
+        {% endif %}
+        <p class="small text-muted mt-1 mb-0">
+          Reviewed {{ application.reviewed_at|date:"d M Y" }}
+          by {{ application.reviewed_by.get_full_name }}
+        </p>
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- Review form -->
+    <div class="card border-0 shadow-sm">
+      <div class="card-header fw-semibold bg-primary text-white">
+        <i class="bi bi-clipboard2-check me-2"></i>
+        {% if application.status == 'pending' %}Make a Decision{% else %}Update Decision{% endif %}
+      </div>
+      <div class="card-body p-4">
+        <form method="post">
+          {% csrf_token %}
+
+          <!-- Decision radio -->
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Decision *</label>
+            <div class="d-flex gap-3">
+              <div class="form-check">
+                <input class="form-check-input" type="radio" name="decision"
+                       id="dec_accept" value="accepted"
+                       {% if form.decision.value == 'accepted' %}checked{% endif %}>
+                <label class="form-check-label text-success fw-semibold" for="dec_accept">
+                  <i class="bi bi-check-circle me-1"></i>Accept
+                </label>
+              </div>
+              <div class="form-check">
+                <input class="form-check-input" type="radio" name="decision"
+                       id="dec_reject" value="rejected"
+                       {% if form.decision.value == 'rejected' %}checked{% endif %}>
+                <label class="form-check-label text-danger fw-semibold" for="dec_reject">
+                  <i class="bi bi-x-circle me-1"></i>Reject
+                </label>
+              </div>
+            </div>
+            {% for e in form.decision.errors %}
+              <div class="text-danger small mt-1">{{ e }}</div>
+            {% endfor %}
+          </div>
+
+          <!-- Supervisor assignment (shown when accepting) -->
+          <div class="mb-4" id="supervisorField">
+            <label class="form-label fw-semibold">
+              {{ form.supervisor.label }}
+              <span class="text-muted fw-normal">(required when accepting)</span>
+            </label>
+
+            {% if supervisor_locked %}
+              <!-- Placement already has a designated supervisor: show it locked, submit it via hidden input -->
+              <input type="text" class="form-control" disabled
+                     value="{{ form.supervisor.field.queryset.first.get_full_name }} — {{ company_name }}">
+              <div class="form-text">
+                <i class="bi bi-lock-fill me-1"></i>
+                This placement's supervisor was set when it was created.
+              </div>
+              {{ form.supervisor.as_hidden }}
+
+            {% elif no_matching_supervisor %}
+              <div class="alert alert-warning py-2 px-3 mb-2 small">
+                <i class="bi bi-exclamation-triangle-fill me-1"></i>
+                No supervisor registered for <strong>{{ company_name }}</strong>.
+                Please ask the supervisor to register first.
+              </div>
+
+            {% else %}
+              <select name="{{ form.supervisor.html_name }}" id="{{ form.supervisor.id_for_label }}" class="form-select">
+                <option value="">— Select supervisor —</option>
+                {% for sv in form.supervisor.field.queryset %}
+                  <option value="{{ sv.pk }}"
+                    {% if form.supervisor.value|stringformat:"s" == sv.pk|stringformat:"s" %}selected{% endif %}>
+                    {{ sv.get_full_name }} — {{ sv.company_name|default:"No company" }}
+                  </option>
+                {% endfor %}
+              </select>
+            {% endif %}
+
+            {% for e in form.supervisor.errors %}
+              <div class="text-danger small mt-1">{{ e }}</div>
+            {% endfor %}
+          </div>
+
+          <!-- Note -->
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Note to Student <span class="text-muted fw-normal">(optional)</span></label>
+            <textarea name="review_notes" rows="3" class="form-control"
+                      placeholder="Explain your decision or provide feedback…">{{ form.review_notes.value|default:'' }}</textarea>
+          </div>
+
+          <div class="d-grid">
+            <button type="submit" class="btn btn-primary">
+              <i class="bi bi-send me-1"></i> Submit Decision
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endblock %}

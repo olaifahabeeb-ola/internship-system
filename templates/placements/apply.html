@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+{% block title %}Apply — {{ placement.title }} — InternTrack{% endblock %}
+{% block nav_placements %}active{% endblock %}
+
+{% block content %}
+<div class="mb-3">
+  <a href="{% url 'placements:detail' placement.pk %}" class="text-decoration-none text-muted">
+    <i class="bi bi-arrow-left me-1"></i> Back to Placement
+  </a>
+</div>
+
+<div class="row justify-content-center">
+<div class="col-lg-7">
+
+  <!-- Placement summary banner -->
+  <div class="card border-0 bg-primary text-white mb-4">
+    <div class="card-body p-3">
+      <h5 class="mb-1 fw-bold">{{ placement.title }}</h5>
+      <p class="mb-0 opacity-75">
+        <i class="bi bi-building me-1"></i>{{ placement.company_name }} &nbsp;|&nbsp;
+        <i class="bi bi-geo-alt me-1"></i>{{ placement.location }}
+      </p>
+    </div>
+  </div>
+
+  <!-- Application form -->
+  <div class="card border-0 shadow-sm">
+    <div class="card-header fw-semibold bg-light">
+      <i class="bi bi-send me-2"></i>Submit Your Application
+    </div>
+    <div class="card-body p-4">
+      <form method="post" enctype="multipart/form-data" novalidate>
+        {% csrf_token %}
+
+        <!-- Cover letter -->
+        <div class="mb-4">
+          <label class="form-label fw-semibold">Cover Letter</label>
+          <textarea name="cover_letter"
+                    class="form-control {% if form.cover_letter.errors %}is-invalid{% endif %}"
+                    rows="7"
+                    placeholder="Explain why you are a good fit for this placement…">{{ form.cover_letter.value|default:'' }}</textarea>
+          <div class="form-text">
+            Highlight relevant skills, academic background, and why this placement interests you.
+          </div>
+          {% for e in form.cover_letter.errors %}
+            <div class="invalid-feedback">{{ e }}</div>
+          {% endfor %}
+        </div>
+
+        <!-- CV upload -->
+        <div class="mb-4">
+          <label class="form-label fw-semibold">
+            Upload CV <span class="text-muted fw-normal">(PDF or DOCX, max 2 MB)</span>
+          </label>
+          <input type="file" name="cv"
+                 class="form-control {% if form.cv.errors %}is-invalid{% endif %}"
+                 accept=".pdf,.docx">
+          {% for e in form.cv.errors %}
+            <div class="invalid-feedback">{{ e }}</div>
+          {% endfor %}
+        </div>
+
+        <!-- Non-field errors -->
+        {% if form.non_field_errors %}
+          <div class="alert alert-danger py-2">
+            {% for e in form.non_field_errors %}{{ e }}<br>{% endfor %}
+          </div>
+        {% endif %}
+
+        <div class="d-flex gap-2 mt-3">
+          <button type="submit" class="btn btn-primary px-4">
+            <i class="bi bi-send me-1"></i> Submit Application
+          </button>
+          <a href="{% url 'placements:detail' placement.pk %}"
+             class="btn btn-outline-secondary">Cancel</a>
+        </div>
+      </form>
+    </div>
+  </div>
+
+</div>
+</div>
+{% endblock %}

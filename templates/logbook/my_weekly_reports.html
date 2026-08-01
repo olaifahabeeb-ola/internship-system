@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% block title %}My Weekly Reports — InternTrack{% endblock %}
+{% block nav_logbook %}active{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h4 class="fw-bold mb-0">
+    <i class="bi bi-calendar-week me-2 text-success"></i>My Weekly Reports
+  </h4>
+  <a href="{% url 'logbook:submit_weekly_report' %}" class="btn btn-success">
+    <i class="bi bi-plus-circle me-1"></i> New Report
+  </a>
+</div>
+
+{% if reports %}
+  <div class="d-flex flex-column gap-3">
+    {% for report in reports %}
+    <div class="card border-0 shadow-sm {% if report.supervisor_approved %}border-start border-success border-4{% else %}border-start border-warning border-4{% endif %}">
+      <div class="card-body p-4">
+        <div class="d-flex justify-content-between align-items-start mb-2">
+          <div>
+            <h6 class="fw-bold mb-0">
+              Week of {{ report.week_start|date:"d M Y" }} — {{ report.week_end|date:"d M Y" }}
+            </h6>
+            <small class="text-muted">Submitted {{ report.created_at|date:"d M Y, H:i" }}</small>
+          </div>
+          {% if report.supervisor_approved %}
+            <span class="badge bg-success">
+              <i class="bi bi-check-circle me-1"></i>Approved
+            </span>
+          {% else %}
+            <span class="badge bg-warning text-dark">Pending</span>
+          {% endif %}
+        </div>
+
+        <p class="text-muted small mb-2">
+          <strong>Summary:</strong> {{ report.summary|truncatewords:30 }}
+        </p>
+
+        {% if report.supervisor_comment %}
+        <div class="alert alert-light border py-2 mb-0 mt-2">
+          <small class="text-muted">
+            <i class="bi bi-chat-left-text me-1"></i>
+            Supervisor: <em>"{{ report.supervisor_comment }}"</em>
+          </small>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+{% else %}
+  <div class="text-center py-5 text-muted">
+    <i class="bi bi-calendar-x fs-1 d-block mb-3"></i>
+    <h5>No weekly reports yet</h5>
+    <p>Submit your first weekly summary to keep your coordinator updated.</p>
+    <a href="{% url 'logbook:submit_weekly_report' %}" class="btn btn-success">
+      Submit First Report
+    </a>
+  </div>
+{% endif %}
+
+{% endblock %}

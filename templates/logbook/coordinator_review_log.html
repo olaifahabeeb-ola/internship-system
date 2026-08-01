@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+{% block title %}Review Log Entry — InternTrack{% endblock %}
+{% block nav_co_logs %}active{% endblock %}
+
+{% block content %}
+<div class="mb-3">
+  <a href="{% url 'logbook:coordinator_overview' %}" class="text-decoration-none text-muted">
+    <i class="bi bi-arrow-left me-1"></i> Back to Monitor
+  </a>
+</div>
+
+<div class="alert alert-info d-flex gap-2 align-items-center mb-4">
+  <i class="bi bi-info-circle-fill fs-5"></i>
+  <div class="small">
+    You're reviewing this entry as the coordinator — normally this is the assigned
+    supervisor's job. Use this when a supervisor is unavailable or slow to respond.
+  </div>
+</div>
+
+<div class="row g-4">
+
+  <div class="col-lg-7">
+    <div class="card border-0 shadow-sm mb-3">
+      <div class="card-header bg-light fw-semibold d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-journal-text me-2"></i>Log entry — {{ entry.date|date:"d M Y" }}</span>
+        <span class="badge bg-warning text-dark">{{ entry.get_status_display }}</span>
+      </div>
+      <div class="card-body">
+        <div class="row g-2 small mb-3">
+          <div class="col-sm-6">
+            <span class="text-muted">Student</span><br>
+            <strong>{{ entry.student.get_full_name }}</strong>
+          </div>
+          <div class="col-sm-6">
+            <span class="text-muted">Placement</span><br>
+            <strong>{{ entry.placement.title }}</strong> — {{ entry.placement.company_name }}
+          </div>
+          <div class="col-sm-6">
+            <span class="text-muted">Hours worked</span><br>
+            <strong>{{ entry.hours_worked }}</strong>
+          </div>
+          <div class="col-sm-6">
+            <span class="text-muted">Skills applied</span><br>
+            <strong>{{ entry.skills_gained|default:"—" }}</strong>
+          </div>
+        </div>
+
+        <h6 class="fw-semibold">Activities performed</h6>
+        <p class="small" style="white-space: pre-line;">{{ entry.activity_description }}</p>
+
+        {% if entry.attachment %}
+        <a href="{{ entry.attachment.url }}" target="_blank" class="btn btn-sm btn-outline-secondary">
+          <i class="bi bi-paperclip me-1"></i> View attachment
+        </a>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-5">
+    <div class="card border-0 shadow-sm">
+      <div class="card-header fw-semibold bg-primary text-white">
+        <i class="bi bi-clipboard2-check me-2"></i>Make a decision
+      </div>
+      <div class="card-body p-4">
+        <form method="post">
+          {% csrf_token %}
+
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Decision *</label>
+            <div class="d-flex gap-3">
+              <div class="form-check">
+                <input class="form-check-input" type="radio" name="status"
+                       id="dec_approved" value="approved"
+                       {% if form.status.value == 'approved' %}checked{% endif %}>
+                <label class="form-check-label text-success fw-semibold" for="dec_approved">
+                  <i class="bi bi-check-circle me-1"></i>Approve
+                </label>
+              </div>
+              <div class="form-check">
+                <input class="form-check-input" type="radio" name="status"
+                       id="dec_rejected" value="rejected"
+                       {% if form.status.value == 'rejected' %}checked{% endif %}>
+                <label class="form-check-label text-danger fw-semibold" for="dec_rejected">
+                  <i class="bi bi-x-circle me-1"></i>Reject
+                </label>
+              </div>
+            </div>
+            {% for e in form.status.errors %}
+              <div class="text-danger small mt-1">{{ e }}</div>
+            {% endfor %}
+          </div>
+
+          <div class="mb-4">
+            <label class="form-label fw-semibold">{{ form.supervisor_comment.label }}</label>
+            <textarea name="supervisor_comment" rows="3"
+                      class="form-control {% if form.supervisor_comment.errors %}is-invalid{% endif %}"
+                      placeholder="Add feedback for the student (required if rejecting)...">{{ form.supervisor_comment.value|default:'' }}</textarea>
+            {% for e in form.supervisor_comment.errors %}
+              <div class="invalid-feedback">{{ e }}</div>
+            {% endfor %}
+          </div>
+
+          <div class="d-grid">
+            <button type="submit" class="btn btn-primary">
+              <i class="bi bi-send me-1"></i> Submit decision
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

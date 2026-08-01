@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+{% block title %}My Placements — InternTrack{% endblock %}
+{% block nav_sv_placements %}active{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h4 class="fw-bold mb-0">
+    <i class="bi bi-building me-2 text-success"></i>My Placement Postings
+  </h4>
+  <a href="{% url 'placements:supervisor_create' %}" class="btn btn-success">
+    <i class="bi bi-plus-lg me-1"></i> Post a Placement
+  </a>
+</div>
+
+<div class="row g-3 mb-4">
+  <div class="col-4">
+    <div class="card border-0 shadow-sm text-center border-top border-warning border-3">
+      <div class="card-body py-3">
+        <div class="fw-bold fs-3 text-warning">{{ counts.pending }}</div>
+        <div class="small text-muted">Pending Review</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-4">
+    <div class="card border-0 shadow-sm text-center border-top border-success border-3">
+      <div class="card-body py-3">
+        <div class="fw-bold fs-3 text-success">{{ counts.approved }}</div>
+        <div class="small text-muted">Approved</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-4">
+    <div class="card border-0 shadow-sm text-center border-top border-danger border-3">
+      <div class="card-body py-3">
+        <div class="fw-bold fs-3 text-danger">{{ counts.rejected }}</div>
+        <div class="small text-muted">Rejected</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% if placements %}
+<div class="card border-0 shadow-sm">
+  <div class="table-responsive">
+    <table class="table table-hover align-middle mb-0">
+      <thead class="table-light">
+        <tr>
+          <th>Title</th>
+          <th>Department</th>
+          <th>Slots</th>
+          <th>Status</th>
+          <th>Submitted</th>
+          <th>Note</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for p in placements %}
+        <tr>
+          <td class="fw-semibold">{{ p.title }}</td>
+          <td>{{ p.get_target_department_display }}</td>
+          <td>{{ p.slots_remaining }} / {{ p.slots_available }}</td>
+          <td>
+            {% if p.approval_status == 'approved' %}
+              <span class="badge bg-success">Approved</span>
+              {% if p.status == 'closed' %}
+                <span class="badge bg-secondary">Closed</span>
+              {% endif %}
+            {% elif p.approval_status == 'rejected' %}
+              <span class="badge bg-danger">Rejected</span>
+            {% else %}
+              <span class="badge bg-warning text-dark">Pending Review</span>
+            {% endif %}
+          </td>
+          <td class="small text-muted">{{ p.created_at|date:"d M Y" }}</td>
+          <td class="small">
+            {% if p.approval_notes %}
+              <em class="text-muted">"{{ p.approval_notes|truncatewords:12 }}"</em>
+            {% else %}
+              <span class="text-muted">—</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% else %}
+<div class="text-center py-5 text-muted">
+  <i class="bi bi-building fs-1 d-block mb-3"></i>
+  <h5>No placements posted yet</h5>
+  <p>Submit a vacancy at your company — it'll appear here once submitted.</p>
+  <a href="{% url 'placements:supervisor_create' %}" class="btn btn-success">
+    <i class="bi bi-plus-lg me-1"></i> Post Your First Placement
+  </a>
+</div>
+{% endif %}
+{% endblock %}

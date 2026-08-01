@@ -1,0 +1,200 @@
+{% extends "base.html" %}
+{% block title %}Aggregate Report — InternTrack{% endblock %}
+{% block nav_co_reports %}active{% endblock %}
+
+{% block extra_css %}
+<style>
+@media print {
+  .sidebar, .navbar, .no-print, .btn, nav, form { display: none !important; }
+  .main-content { padding: 0 !important; }
+  body { background: white !important; }
+  .card { box-shadow: none !important; border: 1px solid #dee2e6 !important; page-break-inside: avoid; }
+}
+.print-header { display: none; }
+@media print { .print-header { display: block; } }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="print-header text-center mb-4">
+  <h2>InternTrack — Aggregate Placement Report</h2>
+  <p class="text-muted">Generated on {% now "d M Y, H:i" %}</p>
+  <hr>
+</div>
+
+<div class="d-flex justify-content-between align-items-center mb-4 no-print">
+  <div>
+    <a href="{% url 'reports:index' %}" class="text-decoration-none text-muted me-3">
+      <i class="bi bi-arrow-left me-1"></i> Back to Reports
+    </a>
+    <h4 class="fw-bold d-inline mb-0">Aggregate Report</h4>
+  </div>
+  <div class="d-flex gap-2">
+    <a href="{% url 'reports:aggregate_pdf' %}{% if date_from %}?date_from={{ date_from }}&date_to={{ date_to }}{% endif %}"
+       class="btn btn-outline-secondary btn-sm" target="_blank">
+      <i class="bi bi-printer me-1"></i> Print / PDF
+    </a>
+    <a href="{% url 'reports:aggregate_csv' %}" class="btn btn-outline-success btn-sm">
+      <i class="bi bi-file-earmark-spreadsheet me-1"></i> Download CSV
+    </a>
+  </div>
+</div>
+
+<!-- Date filter -->
+<div class="card border-0 shadow-sm mb-4 no-print">
+  <div class="card-body py-3">
+    <form method="get" class="row g-2 align-items-end">
+      <div class="col-auto">
+        <label class="form-label small fw-semibold mb-1">From</label>
+        <input type="date" name="date_from" class="form-control form-control-sm"
+               value="{{ date_from }}">
+      </div>
+      <div class="col-auto">
+        <label class="form-label small fw-semibold mb-1">To</label>
+        <input type="date" name="date_to" class="form-control form-control-sm"
+               value="{{ date_to }}">
+      </div>
+      <div class="col-auto">
+        <button type="submit" class="btn btn-sm btn-primary">Filter</button>
+        <a href="{% url 'reports:aggregate' %}" class="btn btn-sm btn-outline-secondary ms-1">
+          Clear
+        </a>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Placement stats -->
+<div class="row g-3 mb-4">
+  <div class="col-md-4">
+    <div class="card border-0 shadow-sm text-center border-top border-primary border-3">
+      <div class="card-body py-3">
+        <div class="fw-bold fs-3 text-primary">{{ placements.count }}</div>
+        <div class="small text-muted">Total Placements</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="card border-0 shadow-sm text-center border-top border-success border-3">
+      <div class="card-body py-3">
+        <div class="fw-bold fs-3 text-success">{{ placed_apps.count }}</div>
+        <div class="small text-muted">Students Placed</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="card border-0 shadow-sm text-center border-top border-info border-3">
+      <div class="card-body py-3">
+        <div class="fw-bold fs-3 text-info">{{ assess_total }}</div>
+        <div class="small text-muted">Assessments Submitted</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3 mb-4">
+  <!-- Students per company -->
+  <div class="col-md-6">
+    <div class="card border-0 shadow-sm h-100">
+      <div class="card-header fw-semibold bg-light">Students per Company</div>
+      <div class="table-responsive">
+        <table class="table table-sm table-hover mb-0 small">
+          <thead class="table-light"><tr><th>Company</th><th class="text-center">Students</th></tr></thead>
+          <tbody>
+            {% for row in per_company %}
+            <tr>
+              <td>{{ row.placement__company_name }}</td>
+              <td class="text-center fw-bold">{{ row.count }}</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="2" class="text-muted text-center">No data</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Students per department -->
+  <div class="col-md-6">
+    <div class="card border-0 shadow-sm h-100">
+      <div class="card-header fw-semibold bg-light">Students per Department</div>
+      <div class="table-responsive">
+        <table class="table table-sm table-hover mb-0 small">
+          <thead class="table-light"><tr><th>Department</th><th class="text-center">Students</th></tr></thead>
+          <tbody>
+            {% for row in per_dept %}
+            <tr>
+              <td>{{ row.student__department|default:"Not specified" }}</td>
+              <td class="text-center fw-bold">{{ row.count }}</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="2" class="text-muted text-center">No data</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Logbook stats -->
+<div class="card border-0 shadow-sm mb-4">
+  <div class="card-header fw-semibold bg-light">
+    <i class="bi bi-journal-text me-2"></i>Logbook Statistics
+    {% if date_from %}<small class="text-muted ms-2">({{ date_from }} to {{ date_to }})</small>{% endif %}
+  </div>
+  <div class="card-body">
+    <div class="row g-3 text-center">
+      <div class="col-6 col-md-3">
+        <div class="fw-bold fs-3">{{ log_stats.total }}</div>
+        <div class="small text-muted">Total Entries</div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="fw-bold fs-3 text-success">{{ log_stats.approved }}</div>
+        <div class="small text-muted">Approved</div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="fw-bold fs-3 text-primary">{{ log_stats.avg_per_student }}</div>
+        <div class="small text-muted">Avg per Student</div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="fw-bold fs-3 text-info">{{ log_stats.approval_pct }}%</div>
+        <div class="small text-muted">Approval Rate</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Assessment stats -->
+<div class="card border-0 shadow-sm mb-4">
+  <div class="card-header fw-semibold bg-light">
+    <i class="bi bi-clipboard2-check me-2"></i>Assessment Statistics
+  </div>
+  <div class="card-body">
+    <div class="row g-3 text-center mb-3">
+      <div class="col-6 col-md-3">
+        <div class="fw-bold fs-3 text-primary">{{ avg_score }}</div>
+        <div class="small text-muted">Avg Score (pts)</div>
+      </div>
+      {% for grade, count in grade_dist.items %}
+      <div class="col-4 col-md-2">
+        <div class="fw-bold fs-4
+          {% if grade == 'A' %}text-success
+          {% elif grade == 'B' %}text-primary
+          {% elif grade == 'C' %}text-info
+          {% elif grade == 'D' %}text-warning
+          {% else %}text-danger{% endif %}">
+          {{ count }}
+        </div>
+        <div class="small text-muted">Grade {{ grade }}</div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+
+{% if print_mode %}
+<script>window.onload = function(){ window.print(); }</script>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,129 @@
+{% extends "base.html" %}
+{% block title %}Log Entry — {{ entry.date }} — InternTrack{% endblock %}
+
+{% block content %}
+<div class="mb-3">
+  {% if request.user.is_student %}
+    <a href="{% url 'logbook:my_logbook' %}" class="text-decoration-none text-muted">
+      <i class="bi bi-arrow-left me-1"></i> Back to My Logbook
+    </a>
+  {% elif request.user.is_supervisor %}
+    <a href="{% url 'logbook:review_list' %}" class="text-decoration-none text-muted">
+      <i class="bi bi-arrow-left me-1"></i> Back to Review List
+    </a>
+  {% elif request.user.is_coordinator %}
+    <a href="{% url 'logbook:coordinator_overview' %}" class="text-decoration-none text-muted">
+      <i class="bi bi-arrow-left me-1"></i> Back to Monitor
+    </a>
+  {% endif %}
+</div>
+
+<div class="row g-4">
+  <div class="col-lg-8">
+    <div class="card border-0 shadow-sm">
+      <div class="card-header bg-light d-flex justify-content-between align-items-center">
+        <span class="fw-semibold">
+          <i class="bi bi-journal-text me-2"></i>Log Entry — {{ entry.date|date:"l, d F Y" }}
+        </span>
+        {% if entry.status == 'approved' %}
+          <span class="badge bg-success">Approved</span>
+        {% elif entry.status == 'rejected' %}
+          <span class="badge bg-danger">Rejected</span>
+        {% else %}
+          <span class="badge bg-warning text-dark">Pending</span>
+        {% endif %}
+      </div>
+      <div class="card-body p-4">
+        <h6 class="text-uppercase text-muted small fw-bold mb-2">Activities Performed</h6>
+        <p class="mb-4" style="white-space:pre-line;">{{ entry.activity_description }}</p>
+
+        {% if entry.skills_gained %}
+        <h6 class="text-uppercase text-muted small fw-bold mb-2">Skills Gained / Applied</h6>
+        <div class="mb-4">
+          {% for skill in entry.skills_gained.split %}
+            <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 me-1 mb-1 px-2 py-1">
+              {{ skill|cut:"," }}
+            </span>
+          {% endfor %}
+        </div>
+        {% endif %}
+
+        <div class="row g-3 small">
+          <div class="col-sm-4">
+            <span class="text-muted">Hours Worked</span><br>
+            <strong class="fs-5">{{ entry.hours_worked }} hrs</strong>
+          </div>
+          <div class="col-sm-4">
+            <span class="text-muted">Submitted</span><br>
+            <strong>{{ entry.created_at|date:"d M Y, H:i" }}</strong>
+          </div>
+          {% if entry.attachment %}
+          <div class="col-sm-4">
+            <span class="text-muted">Attachment</span><br>
+            <a href="{{ entry.attachment.url }}" target="_blank" class="fw-semibold">
+              <i class="bi bi-paperclip me-1"></i>Download
+            </a>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-4">
+    <!-- Supervisor review info -->
+    {% if entry.status != 'pending' %}
+    <div class="card border-0 shadow-sm mb-3">
+      <div class="card-header fw-semibold bg-light">Review Result</div>
+      <div class="card-body">
+        {% if entry.status == 'approved' %}
+          <div class="text-success fw-bold mb-2">
+            <i class="bi bi-check-circle-fill me-1"></i>Approved
+          </div>
+        {% else %}
+          <div class="text-danger fw-bold mb-2">
+            <i class="bi bi-x-circle-fill me-1"></i>Rejected
+          </div>
+        {% endif %}
+        {% if entry.supervisor_comment %}
+          <p class="small text-muted mb-1">Supervisor comment:</p>
+          <p class="small fst-italic">"{{ entry.supervisor_comment }}"</p>
+        {% endif %}
+        <p class="small text-muted mb-0">
+          Reviewed by {{ entry.reviewed_by.get_full_name }}
+          on {{ entry.reviewed_at|date:"d M Y" }}
+        </p>
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- Student actions -->
+    {% if request.user.is_student and entry.is_editable %}
+    <div class="card border-0 shadow-sm">
+      <div class="card-header fw-semibold bg-light">Actions</div>
+      <div class="card-body d-grid gap-2">
+        <a href="{% url 'logbook:edit_log' entry.pk %}" class="btn btn-outline-primary">
+          <i class="bi bi-pencil me-1"></i> Edit Entry
+        </a>
+        <a href="{% url 'logbook:delete_log' entry.pk %}" class="btn btn-outline-danger">
+          <i class="bi bi-trash me-1"></i> Delete Entry
+        </a>
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- Supervisor action shortcut -->
+    {% if request.user.is_supervisor and entry.status == 'pending' and not readonly %}
+    <div class="card border-0 shadow-sm">
+      <div class="card-body d-grid">
+        <a href="{% url 'logbook:supervisor_review_log' entry.pk %}"
+           class="btn btn-primary">
+          <i class="bi bi-clipboard2-check me-1"></i> Review This Entry
+        </a>
+      </div>
+    </div>
+    {% endif %}
+
+  </div>
+</div>
+{% endblock %}

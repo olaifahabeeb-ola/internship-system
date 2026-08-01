@@ -1,0 +1,154 @@
+{% extends "base.html" %}
+{% block title %}Assessment Dashboard — InternTrack{% endblock %}
+{% block nav_sv_assess %}active{% endblock %}
+
+{% block content %}
+<h4 class="fw-bold mb-4">
+  <i class="bi bi-clipboard2-check me-2 text-primary"></i>Assessment Dashboard
+</h4>
+
+<!-- Stat cards -->
+<div class="row g-3 mb-4">
+  <div class="col-4">
+    <div class="card border-0 shadow-sm text-center border-top border-warning border-3">
+      <div class="card-body py-3">
+        <div class="fw-bold fs-3 text-warning">{{ pending_mid }}</div>
+        <div class="small text-muted">Mid-Term Pending</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-4">
+    <div class="card border-0 shadow-sm text-center border-top border-danger border-3">
+      <div class="card-body py-3">
+        <div class="fw-bold fs-3 text-danger">{{ pending_final }}</div>
+        <div class="small text-muted">Final Pending</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-4">
+    <div class="card border-0 shadow-sm text-center border-top border-success border-3">
+      <div class="card-body py-3">
+        <div class="fw-bold fs-3 text-success">{{ completed }}</div>
+        <div class="small text-muted">Fully Completed</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% if student_data %}
+<div class="card border-0 shadow-sm">
+  <div class="card-header fw-semibold bg-light">
+    <i class="bi bi-people me-2"></i>Students to Assess
+  </div>
+  <div class="table-responsive">
+    <table class="table table-hover align-middle mb-0">
+      <thead class="table-light">
+        <tr>
+          <th>Student</th>
+          <th>Placement</th>
+          <th class="text-center">Mid-Term</th>
+          <th class="text-center">Final</th>
+          <th class="text-center">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for d in student_data %}
+        <tr>
+          <td>
+            <div class="fw-semibold">{{ d.application.student.get_full_name }}</div>
+            <div class="small text-muted">{{ d.application.student.matric_number|default:"—" }}</div>
+          </td>
+          <td class="small">
+            {{ d.application.placement.title }}<br>
+            <span class="text-muted">{{ d.application.placement.company_name }}</span>
+          </td>
+
+          <!-- Mid-term cell -->
+          <td class="text-center">
+            {% if d.mid_term %}
+              {% if d.mid_term.is_submitted %}
+                <span class="badge bg-success">
+                  {{ d.mid_term.percentage }}%
+                </span>
+              {% else %}
+                <span class="badge bg-warning text-dark">Draft</span>
+              {% endif %}
+            {% else %}
+              <span class="badge bg-secondary">Not started</span>
+            {% endif %}
+          </td>
+
+          <!-- Final cell -->
+          <td class="text-center">
+            {% if d.final %}
+              {% if d.final.is_submitted %}
+                <span class="badge bg-success">
+                  {{ d.final.percentage }}%
+                </span>
+              {% else %}
+                <span class="badge bg-warning text-dark">Draft</span>
+              {% endif %}
+            {% else %}
+              <span class="badge bg-secondary">Not started</span>
+            {% endif %}
+          </td>
+
+          <!-- Action buttons -->
+          <td class="text-center">
+            <div class="d-flex gap-1 justify-content-center flex-wrap">
+
+              {% if d.mid_term %}
+                {% if d.mid_term.is_submitted %}
+                  <a href="{% url 'assessment:detail' d.mid_term.pk %}"
+                     class="btn btn-sm btn-outline-secondary">
+                    <i class="bi bi-eye me-1"></i>Mid-Term
+                  </a>
+                {% else %}
+                  <a href="{% url 'assessment:create' d.application.pk 'mid_term' %}"
+                     class="btn btn-sm btn-warning">
+                    <i class="bi bi-pencil me-1"></i>Continue Mid
+                  </a>
+                {% endif %}
+              {% else %}
+                <a href="{% url 'assessment:create' d.application.pk 'mid_term' %}"
+                   class="btn btn-sm btn-outline-primary">
+                  <i class="bi bi-plus me-1"></i>Start Mid
+                </a>
+              {% endif %}
+
+              {% if d.final %}
+                {% if d.final.is_submitted %}
+                  <a href="{% url 'assessment:detail' d.final.pk %}"
+                     class="btn btn-sm btn-outline-secondary">
+                    <i class="bi bi-eye me-1"></i>Final
+                  </a>
+                {% else %}
+                  <a href="{% url 'assessment:create' d.application.pk 'final' %}"
+                     class="btn btn-sm btn-warning">
+                    <i class="bi bi-pencil me-1"></i>Continue Final
+                  </a>
+                {% endif %}
+              {% else %}
+                <a href="{% url 'assessment:create' d.application.pk 'final' %}"
+                   class="btn btn-sm btn-outline-success">
+                  <i class="bi bi-plus me-1"></i>Start Final
+                </a>
+              {% endif %}
+
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% else %}
+<div class="text-center py-5 text-muted">
+  <i class="bi bi-people fs-1 d-block mb-3"></i>
+  <h5>No students assigned yet</h5>
+  <p>Students will appear here once a coordinator assigns you as their supervisor.</p>
+</div>
+{% endif %}
+{% endblock %}

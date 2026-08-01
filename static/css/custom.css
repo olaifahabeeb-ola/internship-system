@@ -1,0 +1,51 @@
+/*
+ * InternTrack — Custom Stylesheet
+ * Supplements Bootstrap 5. Most styling is in base.html <style> block.
+ * Add project-specific overrides here.
+ */
+
+/* Smooth transitions on sidebar links */
+.sidebar .nav-link {
+    transition: background 0.15s ease, color 0.15s ease;
+}
+
+/* Card hover lift effect */
+.stat-card:hover {
+    transform: translateY(-2px);
+    transition: transform 0.2s ease;
+}
+
+/* Print utilities */
+@media print {
+    .sidebar, .navbar, .no-print, footer { display: none !important; }
+    body { background: white !important; }
+    .main-content { padding: 0 !important; }
+    .card { box-shadow: none !important; border: 1px solid #dee2e6 !important; }
+}
+
+/* Score progress bars */
+.score-bar-container {
+    height: 8px;
+    border-radius: 4px;
+    background: #e9ecef;
+    overflow: hidden;
+}
+
+/* Shared status badge colors */
+.status-complete,
+.status-approved {
+    background-color: #198754 !important;
+    color: #fff !important;
+}
+
+.status-pending,
+.status-progress {
+    background-color: #fd7e14 !important;
+    color: #fff !important;
+}
+
+.status-overdue,
+.status-rejected {
+    background-color: #dc3545 !important;
+    color: #fff !important;
+}

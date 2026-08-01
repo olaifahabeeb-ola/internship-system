@@ -1,0 +1,121 @@
+{% extends "base.html" %}
+{% block title %}My Students — InternTrack{% endblock %}
+{% block nav_co_students %}active{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <div>
+    <h4 class="fw-bold mb-0">
+      <i class="bi bi-people-fill me-2 text-primary"></i>My Students
+    </h4>
+    <p class="text-muted small mb-0">
+      Department: <strong>{{ dept }}</strong> &nbsp;|&nbsp;
+      Total: <strong>{{ total }}</strong>
+    </p>
+  </div>
+  <a href="{% url 'accounts:bulk_upload' %}" class="btn btn-outline-primary btn-sm">
+    <i class="bi bi-upload me-1"></i> Bulk Upload
+  </a>
+</div>
+
+<!-- Filters -->
+<div class="card border-0 shadow-sm mb-4">
+  <div class="card-body py-3">
+    <form method="get" class="row g-2 align-items-end">
+      <div class="col-sm-3">
+        <label class="form-label small fw-semibold mb-1">Programme</label>
+        <select name="programme" class="form-select form-select-sm">
+          <option value="">All</option>
+          <option value="ND"  {% if prog_filter == 'ND'  %}selected{% endif %}>ND</option>
+          <option value="HND" {% if prog_filter == 'HND' %}selected{% endif %}>HND</option>
+        </select>
+      </div>
+      <div class="col-sm-3">
+        <label class="form-label small fw-semibold mb-1">Level</label>
+        <select name="level" class="form-select form-select-sm">
+          <option value="">All Levels</option>
+          <option value="ND1"  {% if level_filter == 'ND1'  %}selected{% endif %}>ND 1</option>
+          <option value="ND2"  {% if level_filter == 'ND2'  %}selected{% endif %}>ND 2</option>
+          <option value="HND1" {% if level_filter == 'HND1' %}selected{% endif %}>HND 1</option>
+          <option value="HND2" {% if level_filter == 'HND2' %}selected{% endif %}>HND 2</option>
+        </select>
+      </div>
+      <div class="col-sm-3">
+        <label class="form-label small fw-semibold mb-1">Placement Status</label>
+        <select name="placed" class="form-select form-select-sm">
+          <option value="">All</option>
+          <option value="placed"   {% if placed_filter == 'placed'   %}selected{% endif %}>Placed</option>
+          <option value="unplaced" {% if placed_filter == 'unplaced' %}selected{% endif %}>Not Placed</option>
+        </select>
+      </div>
+      <div class="col-auto">
+        <button type="submit" class="btn btn-sm btn-primary">Filter</button>
+        <a href="{% url 'accounts:students_by_dept' %}"
+           class="btn btn-sm btn-outline-secondary ms-1">Clear</a>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Students grouped by level -->
+{% for level, data in grouped.items %}
+<div class="card border-0 shadow-sm mb-3">
+  <div class="card-header d-flex justify-content-between align-items-center bg-light">
+    <span class="fw-bold">
+      <i class="bi bi-mortarboard me-2 text-primary"></i>{{ level }}
+    </span>
+    <div class="d-flex gap-2">
+      <span class="badge bg-success">{{ data.placed }} Placed</span>
+      <span class="badge bg-warning text-dark">{{ data.unplaced }} Not Placed</span>
+      <span class="badge bg-secondary">{{ data.students|length }} Total</span>
+    </div>
+  </div>
+  <div class="table-responsive">
+    <table class="table table-hover align-middle mb-0 small">
+      <thead class="table-light">
+        <tr>
+          <th>Name</th>
+          <th>Matric No.</th>
+          <th>Programme</th>
+          <th>Session</th>
+          <th>Email</th>
+          <th class="text-center">Placed</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for student in data.students %}
+        <tr>
+          <td>
+            <div class="fw-semibold">{{ student.get_full_name }}</div>
+          </td>
+          <td>{{ student.matric_number|default:"—" }}</td>
+          <td>{{ student.programme|default:"—" }}</td>
+          <td>{{ student.academic_session|default:"—" }}</td>
+          <td>{{ student.email }}</td>
+          <td class="text-center">
+            {% if student.pk in placed_ids %}
+              <span class="badge bg-success">
+                <i class="bi bi-check-circle me-1"></i>Yes
+              </span>
+            {% else %}
+              <span class="badge bg-secondary">No</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% empty %}
+<div class="text-center py-5 text-muted">
+  <i class="bi bi-people fs-1 d-block mb-3"></i>
+  <h5>No students found</h5>
+  <p>No students registered under <strong>{{ dept }}</strong> yet.</p>
+  <a href="{% url 'accounts:bulk_upload' %}" class="btn btn-primary mt-2">
+    <i class="bi bi-upload me-1"></i> Bulk Upload Students
+  </a>
+</div>
+{% endfor %}
+
+{% endblock %}

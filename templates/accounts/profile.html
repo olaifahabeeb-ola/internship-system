@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% load form_extras %}
+{% block title %}My Profile — InternTrack{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-8">
+
+    <h4 class="fw-bold mb-4">
+      <i class="bi bi-person-circle me-2"></i>My Profile
+    </h4>
+
+    <div class="card">
+      <div class="card-header">
+        <span class="badge bg-primary me-2">{{ user.get_role_display }}</span>
+        {{ user.username }}
+      </div>
+      <div class="card-body">
+        <form method="post" novalidate>
+          {% csrf_token %}
+          {% for field in form %}
+            <div class="mb-3">
+              <label class="form-label fw-semibold" for="{{ field.id_for_label }}">
+                {{ field.label }}
+              </label>
+
+              {% with wtype=field|widget_type %}
+              {% if wtype == 'textarea' %}
+                <textarea name="{{ field.html_name }}" id="{{ field.id_for_label }}"
+                          class="form-control {% if field.errors %}is-invalid{% endif %}"
+                          rows="3">{{ field.value|default:'' }}</textarea>
+
+              {% elif wtype == 'select' %}
+                <select name="{{ field.html_name }}" id="{{ field.id_for_label }}"
+                        class="form-select {% if field.errors %}is-invalid{% endif %}">
+                  {% for val, label in field.field.choices %}
+                    <option value="{{ val }}"
+                      {% if field.value|stringformat:"s" == val|stringformat:"s" %}selected{% endif %}>
+                      {{ label }}
+                    </option>
+                  {% endfor %}
+                </select>
+
+              {% else %}
+                <input type="{{ field|input_type }}"
+                       name="{{ field.html_name }}"
+                       id="{{ field.id_for_label }}"
+                       class="form-control {% if field.errors %}is-invalid{% endif %}"
+                       value="{{ field.value|default:'' }}">
+              {% endif %}
+              {% endwith %}
+
+              {% for error in field.errors %}
+                <div class="invalid-feedback d-block">{{ error }}</div>
+              {% endfor %}
+            </div>
+          {% endfor %}
+
+          <button type="submit" class="btn btn-primary">
+            <i class="bi bi-save me-1"></i> Save Changes
+          </button>
+        </form>
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endblock %}

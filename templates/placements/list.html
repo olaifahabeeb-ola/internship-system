@@ -1,0 +1,145 @@
+{% extends "base.html" %}
+{% block title %}Browse Placements — InternTrack{% endblock %}
+{% block nav_placements %}active{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h4 class="fw-bold mb-0">
+    <i class="bi bi-building me-2 text-primary"></i>Available Placements
+  </h4>
+  {% if request.user.is_student and request.user.has_department %}
+    <span class="badge bg-primary fs-6 px-3 py-2">
+      <i class="bi bi-funnel me-1"></i>{{ request.user.department }}
+    </span>
+  {% endif %}
+</div>
+
+<!-- Department warning -->
+{% if dept_warning %}
+<div class="alert alert-warning d-flex gap-2 align-items-center mb-4">
+  <i class="bi bi-exclamation-triangle-fill fs-5"></i>
+  <div>
+    {{ dept_warning }}
+    <a href="{% url 'accounts:profile' %}" class="btn btn-sm btn-warning ms-2">
+      <i class="bi bi-pencil me-1"></i> Update Profile
+    </a>
+  </div>
+</div>
+{% endif %}
+
+<!-- Search -->
+<form method="get" class="mb-4">
+  <div class="input-group">
+    <input type="text" name="q" value="{{ query }}" class="form-control form-control-lg"
+           placeholder="Search by company, title, skills, or location…">
+    <button class="btn btn-primary" type="submit">
+      <i class="bi bi-search"></i> Search
+    </button>
+    {% if query %}
+      <a href="{% url 'placements:list' %}" class="btn btn-outline-secondary">
+        <i class="bi bi-x-lg"></i> Clear
+      </a>
+    {% endif %}
+  </div>
+</form>
+
+{% if query %}
+  <p class="text-muted mb-3">
+    Results for <strong>"{{ query }}"</strong> — {{ placements|length }} found
+  </p>
+{% endif %}
+
+{% if placements %}
+<div class="row g-3">
+  {% for p in placements %}
+  <div class="col-md-6 col-xl-4">
+    <div class="card h-100 border-0 shadow-sm">
+      <div class="card-body">
+        <div class="d-flex justify-content-between align-items-start mb-2">
+          <h6 class="fw-bold mb-0">{{ p.title }}</h6>
+          {% if p.is_full %}
+            <span class="badge bg-secondary">Full</span>
+          {% else %}
+            <span class="badge bg-success">
+              {{ p.slots_remaining }} slot{{ p.slots_remaining|pluralize }} left
+            </span>
+          {% endif %}
+        </div>
+
+        <p class="text-muted small mb-1">
+          <i class="bi bi-building me-1"></i>{{ p.company_name }}
+        </p>
+        <p class="text-muted small mb-2">
+          <i class="bi bi-geo-alt me-1"></i>{{ p.location }}
+        </p>
+
+        <!--
+          Department badge — every placement now targets exactly ONE
+          real department (the 'All Departments' wildcard no longer
+          exists as a choice), so this always renders. No conditional
+          needed here anymore.
+        -->
+        <span class="badge bg-info text-dark mb-2">
+          <i class="bi bi-mortarboard me-1"></i>{{ p.get_target_department_display }}
+        </span>
+        {% if p.target_programme != 'Both' %}
+          <span class="badge bg-secondary mb-2">{{ p.target_programme }}</span>
+        {% endif %}
+
+        <p class="small mb-2">{{ p.description|truncatewords:18 }}</p>
+
+        {% if p.skills_list %}
+        <div class="mb-3">
+          {% for skill in p.skills_list %}
+            <span class="badge bg-light text-dark border me-1">{{ skill }}</span>
+          {% endfor %}
+        </div>
+        {% endif %}
+
+        <p class="small text-muted mb-3">
+          <i class="bi bi-calendar3 me-1"></i>
+          {{ p.start_date|date:"d M Y" }} — {{ p.end_date|date:"d M Y" }}
+        </p>
+
+        <div class="d-flex gap-2">
+          <a href="{% url 'placements:detail' p.pk %}"
+             class="btn btn-sm btn-outline-primary flex-grow-1">View Details</a>
+          {% if request.user.is_student %}
+            {% if p.pk in applied_ids %}
+              <span class="btn btn-sm btn-secondary flex-grow-1 disabled">
+                <i class="bi bi-check2"></i> Applied
+              </span>
+            {% else %}
+              <a href="{% url 'placements:apply' p.pk %}"
+                 class="btn btn-sm btn-primary flex-grow-1">Apply Now</a>
+            {% endif %}
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+{% else %}
+<div class="text-center py-5 text-muted">
+  <i class="bi bi-search fs-1 d-block mb-3"></i>
+  {% if query %}
+    No placements found matching <strong>"{{ query }}"</strong>.
+  {% elif dept_warning %}
+    <!--
+      A student with no department set always lands here now (the
+      queryset is intentionally empty until they set one) — the
+      warning banner above already explains why and links to the
+      fix, so this just confirms rather than repeating the same line.
+    -->
+    Once your department is set, matching placements will appear here.
+  {% elif request.user.has_department %}
+    No open placements for <strong>{{ request.user.department }}</strong> right now.
+    <br><small>Check back later or ask your coordinator.</small>
+  {% else %}
+    No open placements available right now.
+  {% endif %}
+</div>
+{% endif %}
+{% endblock %}

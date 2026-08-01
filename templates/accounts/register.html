@@ -1,0 +1,333 @@
+{% extends "base.html" %}
+{% block title %}Register — InternTrack{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center align-items-stretch mt-4 mb-5 g-3">
+
+ <!-- Decorative panel — recolors live as a role is selected -->
+  <div class="col-lg-4 d-none d-lg-block">
+    <div id="regPanel" class="rounded-3 shadow-sm overflow-hidden position-relative h-100"
+         style="min-height:520px; background:#f4f1ea url('/media/auth-illustration.png') center/cover no-repeat;">
+      <div id="regPanelScrim" class="position-absolute bottom-0 start-0 end-0"
+           style="height:60%; background:linear-gradient(to top, rgba(26,46,74,.94), rgba(26,46,74,0)); transition: background .35s ease;"></div>
+      <div class="position-relative h-100 d-flex flex-column justify-content-end p-4 text-white">
+        <h5 id="regPanelTitle" class="fw-bold mb-1" style="transition: opacity .2s;">Join InternTrack</h5>
+        <p id="regPanelText" class="small mb-0" style="opacity:.85; transition: opacity .2s;">
+          Select a role to get started — the form adjusts automatically.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-sm-10 col-md-8 col-lg-6">
+  <div class="card border-0 shadow-sm rounded-3">
+    <div class="card-body p-4">
+      <h4 class="fw-bold mb-1">Create an Account</h4>
+      <p class="text-muted small mb-4">
+        Fill in your details below. Role-specific fields appear automatically.
+      </p>
+
+      <form method="post" novalidate>
+        {% csrf_token %}
+
+        <!-- Basic info -->
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label fw-semibold">First Name *</label>
+            <input type="text" name="first_name"
+                   class="form-control {% if form.first_name.errors %}is-invalid{% endif %}"
+                   value="{{ form.first_name.value|default:'' }}" required>
+            {% for e in form.first_name.errors %}
+              <div class="invalid-feedback">{{ e }}</div>{% endfor %}
+          </div>
+          <div class="col-md-6">
+            <label class="form-label fw-semibold">Last Name *</label>
+            <input type="text" name="last_name"
+                   class="form-control {% if form.last_name.errors %}is-invalid{% endif %}"
+                   value="{{ form.last_name.value|default:'' }}" required>
+            {% for e in form.last_name.errors %}
+              <div class="invalid-feedback">{{ e }}</div>{% endfor %}
+          </div>
+          <div class="col-md-6">
+            <label class="form-label fw-semibold">Username *</label>
+            <input type="text" name="username"
+                   class="form-control {% if form.username.errors %}is-invalid{% endif %}"
+                   value="{{ form.username.value|default:'' }}" required>
+            {% for e in form.username.errors %}
+              <div class="invalid-feedback">{{ e }}</div>{% endfor %}
+          </div>
+          <div class="col-md-6">
+            <label class="form-label fw-semibold">Email *</label>
+            <input type="email" name="email"
+                   class="form-control {% if form.email.errors %}is-invalid{% endif %}"
+                   value="{{ form.email.value|default:'' }}" required>
+            {% for e in form.email.errors %}
+              <div class="invalid-feedback">{{ e }}</div>{% endfor %}
+          </div>
+          <div class="col-md-6">
+            <label class="form-label fw-semibold">Phone</label>
+            <input type="text" name="phone" class="form-control"
+                   value="{{ form.phone.value|default:'' }}">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label fw-semibold">I am a *</label>
+            <select name="role" id="id_role"
+                    class="form-select {% if form.role.errors %}is-invalid{% endif %}" required>
+              <option value="">— Select role —</option>
+              {% for val, label in form.fields.role.choices %}
+                {% if val %}
+                  <option value="{{ val }}"
+                    {% if form.role.value == val %}selected{% endif %}>
+                    {{ label }}
+                  </option>
+                {% endif %}
+              {% endfor %}
+            </select>
+            {% for e in form.role.errors %}
+              <div class="invalid-feedback">{{ e }}</div>{% endfor %}
+          </div>
+        </div>
+
+        <!-- STUDENT FIELDS -->
+        <div id="student-fields" class="role-fields mt-3" style="display:none;">
+          <hr>
+          <h6 class="text-primary fw-bold">
+            <i class="bi bi-mortarboard me-2"></i>Student Details
+          </h6>
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label fw-semibold">Matric Number *</label>
+              <input type="text" name="matric_number" data-role-required="student"
+                     class="form-control {% if form.matric_number.errors %}is-invalid{% endif %}"
+                     value="{{ form.matric_number.value|default:'' }}"
+                     placeholder="e.g. ENG/2022/0042">
+              {% for e in form.matric_number.errors %}
+                <div class="invalid-feedback">{{ e }}</div>{% endfor %}
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-semibold">Academic Session</label>
+              <input type="text" name="academic_session" class="form-control"
+                     value="{{ form.academic_session.value|default:'2024/2025' }}"
+                     placeholder="2024/2025">
+            </div>
+            <div class="col-12">
+              <label class="form-label fw-semibold">Department *</label>
+              <select name="student_department" data-role-required="student"
+                      class="form-select {% if form.student_department.errors %}is-invalid{% endif %}">
+                {% for val, label in form.fields.student_department.choices %}
+                  <option value="{{ val }}"
+                    {% if form.student_department.value == val %}selected{% endif %}>
+                    {{ label }}
+                  </option>
+                {% endfor %}
+              </select>
+              {% for e in form.student_department.errors %}
+                <div class="invalid-feedback">{{ e }}</div>{% endfor %}
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-semibold">Programme *</label>
+              <select name="programme" data-role-required="student"
+                      class="form-select {% if form.programme.errors %}is-invalid{% endif %}">
+                {% for val, label in form.fields.programme.choices %}
+                  <option value="{{ val }}"
+                    {% if form.programme.value == val %}selected{% endif %}>
+                    {{ label }}
+                  </option>
+                {% endfor %}
+              </select>
+              {% for e in form.programme.errors %}
+                <div class="invalid-feedback">{{ e }}</div>{% endfor %}
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-semibold">Level *</label>
+              <select name="level" data-role-required="student"
+                      class="form-select {% if form.level.errors %}is-invalid{% endif %}">
+                {% for val, label in form.fields.level.choices %}
+                  <option value="{{ val }}"
+                    {% if form.level.value == val %}selected{% endif %}>
+                    {{ label }}
+                  </option>
+                {% endfor %}
+              </select>
+              {% for e in form.level.errors %}
+                <div class="invalid-feedback">{{ e }}</div>{% endfor %}
+            </div>
+          </div>
+        </div>
+
+        <!-- SUPERVISOR FIELDS -->
+        <div id="supervisor-fields" class="role-fields mt-3" style="display:none;">
+          <hr>
+          <h6 class="text-success fw-bold">
+            <i class="bi bi-building me-2"></i>Supervisor Details
+          </h6>
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label fw-semibold">Company Name *</label>
+              <input type="text" name="company_name" data-role-required="supervisor"
+                     class="form-control {% if form.company_name.errors %}is-invalid{% endif %}"
+                     value="{{ form.company_name.value|default:'' }}">
+              {% for e in form.company_name.errors %}
+                <div class="invalid-feedback">{{ e }}</div>{% endfor %}
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-semibold">Department *</label>
+              <select name="supervisor_department" data-role-required="supervisor"
+                      class="form-select {% if form.supervisor_department.errors %}is-invalid{% endif %}">
+                {% for val, label in form.fields.supervisor_department.choices %}
+                  <option value="{{ val }}"
+                    {% if form.supervisor_department.value == val %}selected{% endif %}>
+                    {{ label }}
+                  </option>
+                {% endfor %}
+              </select>
+              {% for e in form.supervisor_department.errors %}
+                <div class="invalid-feedback">{{ e }}</div>{% endfor %}
+              <div class="form-text">
+                Every placement you post will target this department only.
+              </div>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-semibold">Job Title</label>
+              <input type="text" name="job_title" class="form-control"
+                     value="{{ form.job_title.value|default:'' }}">
+            </div>
+            <div class="col-12">
+              <label class="form-label fw-semibold">Company Address</label>
+              <textarea name="company_address" class="form-control" rows="2">{{ form.company_address.value|default:'' }}</textarea>
+            </div>
+          </div>
+        </div>
+
+        <!-- COORDINATOR FIELDS -->
+        <div id="coordinator-fields" class="role-fields mt-3" style="display:none;">
+          <hr>
+          <h6 class="text-warning fw-bold">
+            <i class="bi bi-person-badge me-2"></i>Coordinator Details
+          </h6>
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label fw-semibold">Staff ID *</label>
+              <input type="text" name="staff_id" data-role-required="coordinator"
+                     class="form-control {% if form.staff_id.errors %}is-invalid{% endif %}"
+                     value="{{ form.staff_id.value|default:'' }}">
+              {% for e in form.staff_id.errors %}
+                <div class="invalid-feedback">{{ e }}</div>{% endfor %}
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-semibold">Department (Faculty) *</label>
+              <select name="coordinator_department" data-role-required="coordinator"
+                      class="form-select {% if form.coordinator_department.errors %}is-invalid{% endif %}">
+                {% for val, label in form.fields.coordinator_department.choices %}
+                  <option value="{{ val }}"
+                    {% if form.coordinator_department.value == val %}selected{% endif %}>
+                    {{ label }}
+                  </option>
+                {% endfor %}
+              </select>
+              {% for e in form.coordinator_department.errors %}
+                <div class="invalid-feedback">{{ e }}</div>{% endfor %}
+              <div class="form-text">
+                You will only manage students in this department.
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- PASSWORD -->
+        <hr>
+        <div class="row g-3 mt-1">
+          <div class="col-md-6">
+            <label class="form-label fw-semibold">Password *</label>
+            <input type="password" name="password1"
+                   class="form-control {% if form.password1.errors %}is-invalid{% endif %}" required>
+            {% for e in form.password1.errors %}
+              <div class="invalid-feedback">{{ e }}</div>{% endfor %}
+          </div>
+          <div class="col-md-6">
+            <label class="form-label fw-semibold">Confirm Password *</label>
+            <input type="password" name="password2"
+                   class="form-control {% if form.password2.errors %}is-invalid{% endif %}" required>
+            {% for e in form.password2.errors %}
+              <div class="invalid-feedback">{{ e }}</div>{% endfor %}
+          </div>
+        </div>
+
+        {% if form.non_field_errors %}
+          <div class="alert alert-danger mt-3 py-2">
+            {% for e in form.non_field_errors %}{{ e }}<br>{% endfor %}
+          </div>
+        {% endif %}
+
+        <div class="d-grid mt-4">
+          <button type="submit" class="btn btn-primary btn-lg">
+            <i class="bi bi-person-plus-fill me-1"></i> Create Account
+          </button>
+        </div>
+      </form>
+
+      <hr>
+      <p class="text-center text-muted small mb-0">
+        Already have an account?
+        <a href="{% url 'accounts:login' %}" class="fw-semibold">Sign in</a>
+      </p>
+    </div>
+  </div>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  const roleSelect = document.getElementById('id_role');
+  const roleFieldSections = {
+    student:     document.getElementById('student-fields'),
+    supervisor:  document.getElementById('supervisor-fields'),
+    coordinator: document.getElementById('coordinator-fields'),
+  };
+  const conditionalFields = document.querySelectorAll('[data-role-required]');
+
+  const panelAccents = {
+    '':            { bg: '#1a2e4a', node: '#ffc107', title: 'Join InternTrack', text: 'Select a role to get started — the form adjusts automatically.' },
+    student:       { bg: '#3a1f2c', node: '#f0578a', title: 'Track your placement.', text: 'Apply, log your weeks, and get assessed — all in one place.' },
+    supervisor:    { bg: '#3a241c', node: '#f97350', title: 'Post a vacancy.', text: 'Submit a placement and manage the students you supervise.' },
+    coordinator:   { bg: '#15352f', node: '#2fbf9f', title: 'Manage your department.', text: 'Review applications and approve placements for your students.' },
+  };
+
+ 
+    function updatePanel(role) {
+    const scrim = document.getElementById('regPanelScrim');
+    if (!scrim) return;
+    const cfg = panelAccents[role] || panelAccents[''];
+    // hex → rgb so the scrim tint can carry alpha transparency
+    const r = parseInt(cfg.bg.slice(1, 3), 16);
+    const g = parseInt(cfg.bg.slice(3, 5), 16);
+    const b = parseInt(cfg.bg.slice(5, 7), 16);
+    scrim.style.background = `linear-gradient(to top, rgba(${r},${g},${b},.94), rgba(${r},${g},${b},0))`;
+    document.getElementById('regPanelTitle').textContent = cfg.title;
+    document.getElementById('regPanelText').textContent = cfg.text;
+  }
+  function updateFields() {
+    const selectedRole = roleSelect.value;
+
+    Object.entries(roleFieldSections).forEach(([role, section]) => {
+      if (!section) return;
+      section.style.display = (role === selectedRole) ? 'block' : 'none';
+    });
+
+    conditionalFields.forEach(field => {
+      const belongsToRole = field.dataset.roleRequired === selectedRole;
+      field.required = belongsToRole;
+      if (!belongsToRole) {
+        field.classList.remove('is-invalid');
+      }
+    });
+
+    updatePanel(selectedRole);
+  }
+
+  roleSelect.addEventListener('change', updateFields);
+  updateFields();
+</script>
+{% endblock %}

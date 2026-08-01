@@ -1,0 +1,149 @@
+{% extends "base.html" %}
+{% block title %}Manage Placements — InternTrack{% endblock %}
+{% block nav_co_placements %}active{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h4 class="fw-bold mb-0">
+    <i class="bi bi-building-add me-2 text-primary"></i>Manage Placements
+  </h4>
+  <a href="{% url 'placements:coordinator_pending_placements' %}" class="btn btn-info">
+    <i class="bi bi-building-check me-1"></i> Review Placement Submissions
+  </a>
+</div>
+
+<!-- Stats row -->
+<div class="row g-3 mb-4">
+  <div class="col-6 col-lg-3">
+    <div class="card border-0 shadow-sm text-center">
+      <div class="card-body py-3">
+        <div class="fw-bold fs-3 text-primary">{{ stats.total }}</div>
+        <div class="small text-muted">Total Placements</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-lg-3">
+    <div class="card border-0 shadow-sm text-center">
+      <div class="card-body py-3">
+        <div class="fw-bold fs-3 text-success">{{ stats.open }}</div>
+        <div class="small text-muted">Open</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-lg-3">
+    <div class="card border-0 shadow-sm text-center">
+      <div class="card-body py-3">
+        <div class="fw-bold fs-3 text-info">{{ stats.total_apps }}</div>
+        <div class="small text-muted">Total Applications</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-lg-3">
+    <div class="card border-0 shadow-sm text-center">
+      <div class="card-body py-3">
+        <div class="fw-bold fs-3 text-warning">{{ stats.pending_apps }}</div>
+        <div class="small text-muted">Pending Review</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% if placements %}
+<div class="card border-0 shadow-sm">
+  <div class="table-responsive">
+    <table class="table table-hover align-middle mb-0">
+      <thead class="table-light">
+        <tr>
+          <th>Title / Company</th>
+          <th>Supervisor</th>
+          <th>Location</th>
+          <th>Dates</th>
+          <th class="text-center">Slots</th>
+          <th class="text-center">Applications</th>
+          <th class="text-center">Status</th>
+          <th class="text-center">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for p in placements %}
+        <tr>
+          <td>
+            <div class="fw-semibold">{{ p.title }}</div>
+            <div class="small text-muted">{{ p.company_name }}</div>
+          </td>
+          <td class="small">
+            {% if p.assigned_supervisor %}
+              {{ p.assigned_supervisor.get_full_name }}
+            {% else %}
+              <span class="text-muted">—</span>
+            {% endif %}
+          </td>
+          <td class="small">{{ p.location }}</td>
+          <td class="small text-muted">
+            {{ p.start_date|date:"d M Y" }}<br>{{ p.end_date|date:"d M Y" }}
+          </td>
+          <td class="text-center">
+            <span class="{% if p.is_full %}text-danger{% else %}text-success{% endif %} fw-semibold">
+              {{ p.slots_remaining }}/{{ p.slots_available }}
+            </span>
+          </td>
+          <td class="text-center">
+            <a href="{% url 'placements:coordinator_app_list' p.pk %}"
+               class="text-decoration-none">
+              <span class="badge bg-info text-dark">{{ p.app_count }}</span>
+              {% if p.annotated_pending %}
+                <span class="badge bg-warning text-dark">{{ p.annotated_pending }} pending</span>
+              {% endif %}
+            </a>
+          </td>
+          <td class="text-center">
+            {% if p.status == 'open' %}
+              <span class="badge bg-success">Open</span>
+            {% else %}
+              <span class="badge bg-secondary">Closed</span>
+            {% endif %}
+          </td>
+          <td class="text-center">
+            <div class="d-flex gap-1 justify-content-center">
+              <a href="{% url 'placements:detail' p.pk %}"
+                 class="btn btn-sm btn-outline-secondary" title="View">
+                <i class="bi bi-eye"></i>
+              </a>
+              <a href="{% url 'placements:edit' p.pk %}"
+                 class="btn btn-sm btn-outline-primary" title="Edit">
+                <i class="bi bi-pencil"></i>
+              </a>
+              <form method="post" action="{% url 'placements:close' p.pk %}">
+                {% csrf_token %}
+                <button class="btn btn-sm {% if p.status == 'open' %}btn-outline-warning{% else %}btn-outline-success{% endif %}"
+                        title="{% if p.status == 'open' %}Close{% else %}Re-open{% endif %}">
+                  <i class="bi {% if p.status == 'open' %}bi-lock{% else %}bi-lock-open{% endif %}"></i>
+                </button>
+              </form>
+              <a href="{% url 'placements:coordinator_app_list' p.pk %}"
+                 class="btn btn-sm btn-outline-info" title="View Applications">
+                <i class="bi bi-people"></i>
+              </a>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% else %}
+<div class="text-center py-5 text-muted">
+  <i class="bi bi-building fs-1 d-block mb-3"></i>
+  <h5>No placements yet</h5>
+  <p>
+    Placements are submitted by supervisors and appear here once you approve them.
+  </p>
+  <a href="{% url 'placements:coordinator_pending_placements' %}" class="btn btn-info">
+    <i class="bi bi-building-check me-1"></i> Review Placement Submissions
+  </a>
+</div>
+{% endif %}
+
+{% endblock %}

@@ -1,0 +1,153 @@
+{% extends "base.html" %}
+{% block title %}{% if editing %}Edit{% else %}Create{% endif %} Announcement — InternTrack{% endblock %}
+{% block nav_co_announce %}active{% endblock %}
+
+{% block content %}
+<div class="mb-3">
+  <a href="{% url 'announcements:coordinator_list' %}" class="text-decoration-none text-muted">
+    <i class="bi bi-arrow-left me-1"></i> Back to Announcements
+  </a>
+</div>
+
+<div class="row justify-content-center">
+<div class="col-lg-7">
+  <div class="card border-0 shadow-sm">
+    <div class="card-header bg-light fw-semibold py-3 d-flex justify-content-between align-items-center">
+      <span><i class="bi bi-megaphone me-2"></i>
+      {% if editing %}Edit Announcement{% else %}Create Announcement{% endif %}</span>
+      {% if dept %}
+        <span class="badge bg-primary">{{ dept }} students</span>
+      {% endif %}
+    </div>
+    <div class="card-body p-4">
+      <form method="post" novalidate>
+        {% csrf_token %}
+
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Title *</label>
+          <input type="text" name="title" class="form-control
+                 {% if form.title.errors %}is-invalid{% endif %}"
+                 value="{{ form.title.value|default:'' }}"
+                 placeholder="Announcement title...">
+          {% for e in form.title.errors %}<div class="invalid-feedback">{{ e }}</div>{% endfor %}
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Message *</label>
+          <textarea name="message" rows="5" class="form-control
+                    {% if form.message.errors %}is-invalid{% endif %}"
+                    placeholder="Write your announcement...">{{ form.message.value|default:'' }}</textarea>
+          {% for e in form.message.errors %}<div class="invalid-feedback">{{ e }}</div>{% endfor %}
+        </div>
+
+        <div class="row g-3 mb-3">
+          <div class="col-md-6">
+            <label class="form-label fw-semibold">Target Audience *</label>
+            <select name="target_audience" id="id_target_audience" class="form-select">
+              {% for val, label in form.fields.target_audience.choices %}
+                <option value="{{ val }}"
+                  {% if form.target_audience.value == val %}selected{% endif %}>
+                  {{ label }}
+                </option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label fw-semibold">Priority *</label>
+            <select name="priority" class="form-select">
+              {% for val, label in form.fields.priority.choices %}
+                <option value="{{ val }}"
+                  {% if form.priority.value == val %}selected{% endif %}>
+                  {{ label }}
+                </option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+
+        <div class="mb-3" id="departmentField" style="display:none;">
+  <label class="form-label fw-semibold">Target Department *</label>
+  <select name="target_department"
+          class="form-select {% if form.target_department.errors %}is-invalid{% endif %}"
+          {% if form.target_department.field.disabled %}disabled{% endif %}>
+    {% if not form.target_department.field.disabled %}
+      <option value="">— Select department —</option>
+    {% endif %}
+    {% for val, label in form.fields.target_department.choices %}
+      <option value="{{ val }}"
+        {% if form.target_department.value == val %}selected{% endif %}>
+        {{ label }}
+      </option>
+    {% endfor %}
+  </select>
+  {% for e in form.target_department.errors %}
+    <div class="invalid-feedback">{{ e }}</div>{% endfor %}
+  {% if form.target_department.help_text %}
+    <div class="form-text">{{ form.target_department.help_text }}</div>
+  {% endif %}
+</div>
+
+        <!-- Specific user dropdown — shown only for specific audience types -->
+        <div class="mb-3" id="specificUserField" style="display:none;">
+          <label class="form-label fw-semibold">Select User *</label>
+          <select name="specific_user" id="id_specific_user"
+                  class="form-select {% if form.specific_user.errors %}is-invalid{% endif %}">
+            <option value="">— Select user —</option>
+            {% for user in form.fields.specific_user.queryset %}
+              <option value="{{ user.pk }}"
+                {% if form.specific_user.value|stringformat:"s" == user.pk|stringformat:"s" %}
+                  selected
+                {% endif %}>
+                [{{ user.get_role_display }}] {{ user.get_full_name }} ({{ user.username }})
+              </option>
+            {% endfor %}
+          </select>
+          {% for e in form.specific_user.errors %}
+            <div class="invalid-feedback">{{ e }}</div>{% endfor %}
+        </div>
+
+        <div class="mb-4">
+          <div class="form-check form-switch">
+            <input class="form-check-input" type="checkbox" name="is_active"
+                   id="id_is_active"
+                   {% if form.is_active.value != False %}checked{% endif %}>
+            <label class="form-check-label fw-semibold" for="id_is_active">
+              Active (visible to recipients)
+            </label>
+          </div>
+        </div>
+
+        {% if form.non_field_errors %}
+          <div class="alert alert-danger py-2">
+            {% for e in form.non_field_errors %}{{ e }}<br>{% endfor %}
+          </div>
+        {% endif %}
+
+        <div class="d-flex gap-2">
+          <button type="submit" class="btn btn-primary px-4">
+            <i class="bi bi-send me-1"></i>
+            {% if editing %}Save Changes{% else %}Post Announcement{% endif %}
+          </button>
+          <a href="{% url 'announcements:coordinator_list' %}"
+             class="btn btn-outline-secondary">Cancel</a>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  function toggleFields() {
+    const val = document.getElementById('id_target_audience').value;
+    const showDepartment = val === 'specific_department';
+    const showUser = val === 'specific_student' || val === 'specific_supervisor';
+    document.getElementById('departmentField').style.display = showDepartment ? 'block' : 'none';
+    document.getElementById('specificUserField').style.display = showUser ? 'block' : 'none';
+  }
+  document.getElementById('id_target_audience').addEventListener('change', toggleFields);
+  toggleFields();
+</script>
+{% endblock %}

@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block title %}Supervised Students — InternTrack{% endblock %}
+{% block nav_co_apps %}active{% endblock %}
+
+{% block content %}
+<h4 class="fw-bold mb-4">
+  <i class="bi bi-people-fill me-2 text-success"></i>All Placed Students
+</h4>
+
+{% if applications %}
+<div class="card border-0 shadow-sm">
+  <div class="table-responsive">
+    <table class="table table-hover align-middle mb-0">
+      <thead class="table-light">
+        <tr>
+          <th>Student</th>
+          <th>Matric No.</th>
+          <th>Placement</th>
+          <th>Company</th>
+          <th>Supervisor</th>
+          <th>Start</th>
+          <th>End</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for app in applications %}
+        <tr>
+          <td>
+            <div class="fw-semibold">{{ app.student.get_full_name }}</div>
+            <div class="small text-muted">{{ app.student.email }}</div>
+          </td>
+          <td class="small">{{ app.student.matric_number|default:"—" }}</td>
+          <td class="small">{{ app.placement.title }}</td>
+          <td class="small">{{ app.placement.company_name }}</td>
+          <td class="small">
+            {% if app.supervisor %}
+              {{ app.supervisor.get_full_name }}
+            {% else %}
+              <span class="text-muted">Not assigned</span>
+            {% endif %}
+          </td>
+          <td class="small">{{ app.placement.start_date|date:"d M Y" }}</td>
+          <td class="small">{{ app.placement.end_date|date:"d M Y" }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% else %}
+<div class="text-center py-5 text-muted">
+  <i class="bi bi-people fs-1 d-block mb-3"></i>
+  <h5>No accepted students yet</h5>
+</div>
+{% endif %}
+{% endblock %}

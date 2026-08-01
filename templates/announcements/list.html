@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% block title %}Announcements — InternTrack{% endblock %}
+{% block nav_announcements %}active{% endblock %}
+{% block nav_sv_announce %}active{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h4 class="fw-bold mb-0">
+    <i class="bi bi-megaphone me-2 text-primary"></i>Announcements
+  </h4>
+  {% if request.user.is_coordinator %}
+  <a href="{% url 'announcements:create' %}" class="btn btn-primary btn-sm">
+    <i class="bi bi-plus-circle me-1"></i> New Announcement
+  </a>
+  {% endif %}
+</div>
+
+{% if announcements %}
+  <div class="d-flex flex-column gap-3">
+    {% for ann in announcements %}
+    <div class="card border-0 shadow-sm border-start border-{{ ann.priority_colour }} border-4">
+      <div class="card-body p-4">
+        <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-2">
+          <div>
+            <h5 class="fw-bold mb-1">
+              <a href="{% url 'announcements:detail' ann.pk %}"
+                 class="text-decoration-none text-dark">
+                {{ ann.title }}
+              </a>
+            </h5>
+            <div class="small text-muted">
+              <i class="bi bi-person me-1"></i>{{ ann.posted_by.get_full_name }}
+              &nbsp;|&nbsp;
+              <i class="bi bi-calendar3 me-1"></i>{{ ann.created_at|date:"d M Y, H:i" }}
+            </div>
+          </div>
+          <div class="d-flex gap-2 align-items-center">
+            {% if ann.is_new %}
+              <span class="badge bg-success">New</span>
+            {% endif %}
+            <span class="badge bg-{{ ann.priority_colour }}">
+              {{ ann.get_priority_display }}
+            </span>
+          </div>
+        </div>
+        <p class="text-muted mb-2">{{ ann.message|truncatewords:30 }}</p>
+        <a href="{% url 'announcements:detail' ann.pk %}"
+           class="btn btn-sm btn-outline-{{ ann.priority_colour }}">
+          Read More <i class="bi bi-arrow-right ms-1"></i>
+        </a>
+      </div>
+    </div>
+    {% endfor %}
+{% else %}
+  <div class="text-center py-5 text-muted">
+    <i class="bi bi-megaphone fs-1 d-block mb-3"></i>
+    <h5>No announcements at the moment</h5>
+    <p>Check back later for updates from your coordinator.</p>
+  </div>
+{% endif %}
+{% endblock %}

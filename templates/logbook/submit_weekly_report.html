@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+{% block title %}Submit Weekly Report — InternTrack{% endblock %}
+{% block nav_logbook %}active{% endblock %}
+
+{% block content %}
+<div class="mb-3">
+  <a href="{% url 'logbook:my_weekly_reports' %}" class="text-decoration-none text-muted">
+    <i class="bi bi-arrow-left me-1"></i> Back to My Reports
+  </a>
+</div>
+
+<div class="row justify-content-center">
+<div class="col-lg-7">
+
+  <div class="card border-0 bg-success text-white mb-4">
+    <div class="card-body py-3 px-4">
+      <div class="fw-semibold">{{ application.placement.title }}</div>
+      <div class="small opacity-75">
+        <i class="bi bi-building me-1"></i>{{ application.placement.company_name }}
+      </div>
+    </div>
+  </div>
+
+  <div class="card border-0 shadow-sm">
+    <div class="card-header bg-light fw-semibold py-3">
+      <i class="bi bi-calendar-week me-2"></i>Weekly Summary Report
+    </div>
+    <div class="card-body p-4">
+      <form method="post" novalidate>
+        {% csrf_token %}
+
+        <div class="row g-3 mb-3">
+          <div class="col-md-6">
+            <label class="form-label fw-semibold">Week Start (Monday) *</label>
+            <input type="date" name="week_start"
+                   class="form-control {% if form.week_start.errors %}is-invalid{% endif %}"
+                   value="{{ form.week_start.value|default:'' }}">
+            {% for e in form.week_start.errors %}
+              <div class="invalid-feedback">{{ e }}</div>{% endfor %}
+          </div>
+          <div class="col-md-6">
+            <label class="form-label fw-semibold">Week End (Sunday) *</label>
+            <input type="date" name="week_end"
+                   class="form-control {% if form.week_end.errors %}is-invalid{% endif %}"
+                   value="{{ form.week_end.value|default:'' }}">
+            {% for e in form.week_end.errors %}
+              <div class="invalid-feedback">{{ e }}</div>{% endfor %}
+          </div>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Weekly Summary *</label>
+          <textarea name="summary" rows="5"
+                    class="form-control {% if form.summary.errors %}is-invalid{% endif %}"
+                    placeholder="Summarise what you accomplished this week...">{{ form.summary.value|default:'' }}</textarea>
+          {% for e in form.summary.errors %}
+            <div class="invalid-feedback">{{ e }}</div>{% endfor %}
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Challenges Faced</label>
+          <textarea name="challenges_faced" rows="3" class="form-control"
+                    placeholder="What difficulties did you encounter and how did you address them?">{{ form.challenges_faced.value|default:'' }}</textarea>
+        </div>
+
+        <div class="mb-4">
+          <label class="form-label fw-semibold">Plan for Next Week</label>
+          <textarea name="next_week_plan" rows="3" class="form-control"
+                    placeholder="What are your goals and tasks for next week?">{{ form.next_week_plan.value|default:'' }}</textarea>
+        </div>
+
+        {% if form.non_field_errors %}
+          <div class="alert alert-danger py-2">
+            {% for e in form.non_field_errors %}{{ e }}<br>{% endfor %}
+          </div>
+        {% endif %}
+
+        <div class="d-flex gap-2">
+          <button type="submit" class="btn btn-success px-4">
+            <i class="bi bi-send me-1"></i> Submit Report
+          </button>
+          <a href="{% url 'logbook:my_weekly_reports' %}" class="btn btn-outline-secondary">
+            Cancel
+          </a>
+        </div>
+      </form>
+    </div>
+  </div>
+
+</div>
+</div>
+{% endblock %}

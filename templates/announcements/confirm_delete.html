@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}Delete Announcement — InternTrack{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center mt-4">
+<div class="col-md-6">
+  <div class="card border-0 shadow-sm border-top border-danger border-4">
+    <div class="card-body p-4 text-center">
+      <i class="bi bi-exclamation-triangle-fill text-danger fs-1 mb-3 d-block"></i>
+      <h5 class="fw-bold mb-2">Delete Announcement?</h5>
+      <p class="text-muted mb-1">
+        You are about to permanently delete:
+        <strong>"{{ announcement.title }}"</strong>
+      </p>
+      <p class="text-muted small mb-4">
+        Consider archiving instead to preserve the record.
+      </p>
+      <form method="post" class="d-flex gap-2 justify-content-center">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger px-4">
+          <i class="bi bi-trash me-1"></i> Yes, Delete
+        </button>
+        <a href="{% url 'announcements:coordinator_list' %}"
+           class="btn btn-outline-secondary px-4">Cancel</a>
+      </form>
+    </div>
+  </div>
+</div>
+</div>
+{% endblock %}

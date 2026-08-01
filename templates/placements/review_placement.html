@@ -1,0 +1,142 @@
+{% extends "base.html" %}
+{% block title %}Review Placement — InternTrack{% endblock %}
+{% block nav_co_pending %}active{% endblock %}
+
+{% block content %}
+<div class="mb-3">
+  <a href="{% url 'placements:coordinator_pending_placements' %}" class="text-decoration-none text-muted">
+    <i class="bi bi-arrow-left me-1"></i> Back to Pending Approvals
+  </a>
+</div>
+
+<div class="row g-4">
+
+  <!-- Left: Placement details -->
+  <div class="col-lg-7">
+    <div class="card border-0 shadow-sm mb-3">
+      <div class="card-header bg-light fw-semibold">
+        <i class="bi bi-building me-2"></i>Placement Details
+      </div>
+      <div class="card-body">
+        <h5 class="fw-bold mb-3">{{ placement.title }}</h5>
+        <div class="row g-2 small mb-3">
+          <div class="col-sm-6">
+            <span class="text-muted">Company</span><br>
+            <strong>{{ placement.company_name }}</strong>
+          </div>
+          <div class="col-sm-6">
+            <span class="text-muted">Location</span><br>
+            <strong>{{ placement.location }}</strong>
+          </div>
+          <div class="col-sm-6">
+            <span class="text-muted">Department</span><br>
+            <strong>{{ placement.get_target_department_display }}</strong>
+          </div>
+          <div class="col-sm-6">
+            <span class="text-muted">Slots Available</span><br>
+            <strong>{{ placement.slots_available }}</strong>
+          </div>
+          <div class="col-sm-6">
+            <span class="text-muted">Duration</span><br>
+            <strong>{{ placement.start_date|date:"d M Y" }} — {{ placement.end_date|date:"d M Y" }}</strong>
+          </div>
+          <div class="col-sm-6">
+            <span class="text-muted">Submitted</span><br>
+            <strong>{{ placement.created_at|date:"d M Y, H:i" }}</strong>
+          </div>
+        </div>
+
+        <h6 class="fw-semibold">Description</h6>
+        <p class="small" style="white-space: pre-line;">{{ placement.description }}</p>
+
+        {% if placement.skills_list %}
+        <h6 class="fw-semibold">Required Skills</h6>
+        <div class="mb-2">
+          {% for skill in placement.skills_list %}
+            <span class="badge bg-light text-dark border me-1">{{ skill }}</span>
+          {% endfor %}
+        </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="card border-0 shadow-sm">
+      <div class="card-header bg-light fw-semibold">
+        <i class="bi bi-person-badge me-2"></i>Submitted By
+      </div>
+      <div class="card-body small">
+        <div class="row g-2">
+          <div class="col-sm-6">
+            <span class="text-muted">Name</span><br>
+            <strong>{{ placement.submitted_by.get_full_name|default:"—" }}</strong>
+          </div>
+          <div class="col-sm-6">
+            <span class="text-muted">Email</span><br>
+            <strong>{{ placement.submitted_by.email|default:"—" }}</strong>
+          </div>
+          <div class="col-sm-6">
+            <span class="text-muted">Job Title</span><br>
+            <strong>{{ placement.submitted_by.job_title|default:"—" }}</strong>
+          </div>
+          <div class="col-sm-6">
+            <span class="text-muted">Phone</span><br>
+            <strong>{{ placement.submitted_by.phone|default:"—" }}</strong>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right: Decision form -->
+  <div class="col-lg-5">
+    <div class="card border-0 shadow-sm">
+      <div class="card-header fw-semibold bg-primary text-white">
+        <i class="bi bi-clipboard2-check me-2"></i>Make a Decision
+      </div>
+      <div class="card-body p-4">
+        <form method="post">
+          {% csrf_token %}
+
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Decision *</label>
+            <div class="d-flex gap-3">
+              <div class="form-check">
+                <input class="form-check-input" type="radio" name="decision"
+                       id="dec_approved" value="approved"
+                       {% if form.decision.value == 'approved' %}checked{% endif %}>
+                <label class="form-check-label text-success fw-semibold" for="dec_approved">
+                  <i class="bi bi-check-circle me-1"></i>Approve
+                </label>
+              </div>
+              <div class="form-check">
+                <input class="form-check-input" type="radio" name="decision"
+                       id="dec_rejected" value="rejected"
+                       {% if form.decision.value == 'rejected' %}checked{% endif %}>
+                <label class="form-check-label text-danger fw-semibold" for="dec_rejected">
+                  <i class="bi bi-x-circle me-1"></i>Reject
+                </label>
+              </div>
+            </div>
+            {% for e in form.decision.errors %}
+              <div class="text-danger small mt-1">{{ e }}</div>
+            {% endfor %}
+          </div>
+
+          <div class="mb-4">
+            <label class="form-label fw-semibold">{{ form.approval_notes.label }}</label>
+            <textarea name="approval_notes" rows="3" class="form-control"
+                      placeholder="e.g. reason for rejection, or a welcome note...">{{ form.approval_notes.value|default:'' }}</textarea>
+          </div>
+
+          <div class="d-grid">
+            <button type="submit" class="btn btn-primary">
+              <i class="bi bi-send me-1"></i> Submit Decision
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

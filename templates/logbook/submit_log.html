@@ -1,0 +1,124 @@
+{% extends "base.html" %}
+{% block title %}{% if entry %}Edit Log Entry{% else %}Submit Log Entry{% endif %} — InternTrack{% endblock %}
+{% block nav_logbook %}active{% endblock %}
+
+{% block content %}
+<div class="mb-3">
+  <a href="{% url 'logbook:my_logbook' %}" class="text-decoration-none text-muted">
+    <i class="bi bi-arrow-left me-1"></i> Back to My Logbook
+  </a>
+</div>
+
+<div class="row justify-content-center">
+<div class="col-lg-7">
+
+  <!-- Placement banner -->
+  <div class="card border-0 bg-primary text-white mb-4">
+    <div class="card-body py-3 px-4">
+      <div class="fw-semibold">{{ application.placement.title }}</div>
+      <div class="small opacity-75">
+        <i class="bi bi-building me-1"></i>{{ application.placement.company_name }}
+        &nbsp;|&nbsp;
+        {{ application.placement.start_date|date:"d M Y" }} — {{ application.placement.end_date|date:"d M Y" }}
+      </div>
+    </div>
+  </div>
+
+  <div class="card border-0 shadow-sm">
+    <div class="card-header bg-light fw-semibold py-3">
+      <i class="bi bi-journal-plus me-2"></i>
+      {% if entry %}Edit Log Entry{% else %}New Daily Log Entry{% endif %}
+    </div>
+    <div class="card-body p-4">
+      <form method="post" enctype="multipart/form-data" novalidate>
+        {% csrf_token %}
+
+        <!-- Date -->
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Date *</label>
+          <input type="date" name="date"
+                 class="form-control {% if form.date.errors %}is-invalid{% endif %}"
+                 value="{{ form.date.value|default:'' }}"
+                 max="{% now 'Y-m-d' %}">
+          {% for e in form.date.errors %}
+            <div class="invalid-feedback">{{ e }}</div>{% endfor %}
+          <div class="form-text">Must be within your placement period and not in the future.</div>
+        </div>
+
+        <!-- Activity Description -->
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Activities Performed *</label>
+          <textarea name="activity_description" rows="5"
+                    class="form-control {% if form.activity_description.errors %}is-invalid{% endif %}"
+                    placeholder="Describe in detail the tasks and activities you carried out today...">{{ form.activity_description.value|default:'' }}</textarea>
+          {% for e in form.activity_description.errors %}
+            <div class="invalid-feedback">{{ e }}</div>{% endfor %}
+        </div>
+
+        <!-- Skills -->
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Skills Applied / Gained</label>
+          <input type="text" name="skills_gained"
+                 class="form-control"
+                 placeholder="e.g. Python debugging, stakeholder communication, data analysis"
+                 value="{{ form.skills_gained.value|default:'' }}">
+          <div class="form-text">Separate with commas.</div>
+        </div>
+
+        <!-- Hours worked -->
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Hours Worked *</label>
+          <div class="input-group" style="max-width:160px;">
+            <input type="number" name="hours_worked"
+                   class="form-control {% if form.hours_worked.errors %}is-invalid{% endif %}"
+                   min="1" max="24" step="0.5"
+                   value="{{ form.hours_worked.value|default:'8' }}">
+            <span class="input-group-text">hrs</span>
+          </div>
+          {% for e in form.hours_worked.errors %}
+            <div class="invalid-feedback d-block">{{ e }}</div>{% endfor %}
+        </div>
+
+        <!-- Attachment -->
+        <div class="mb-4">
+          <label class="form-label fw-semibold">
+            Attachment <span class="text-muted fw-normal">(PDF, JPG, PNG, DOCX — max 5 MB)</span>
+          </label>
+          {% if entry and entry.attachment %}
+            <div class="mb-2 small">
+              Current file:
+              <a href="{{ entry.attachment.url }}" target="_blank">
+                <i class="bi bi-paperclip me-1"></i>{{ entry.attachment.name|slice:"22:" }}
+              </a>
+              — upload a new file to replace it.
+            </div>
+          {% endif %}
+          <input type="file" name="attachment"
+                 class="form-control {% if form.attachment.errors %}is-invalid{% endif %}"
+                 accept=".pdf,.jpg,.jpeg,.png,.docx">
+          {% for e in form.attachment.errors %}
+            <div class="invalid-feedback">{{ e }}</div>{% endfor %}
+        </div>
+
+        <!-- Non-field errors -->
+        {% if form.non_field_errors %}
+          <div class="alert alert-danger py-2">
+            {% for e in form.non_field_errors %}{{ e }}<br>{% endfor %}
+          </div>
+        {% endif %}
+
+        <div class="d-flex gap-2">
+          <button type="submit" class="btn btn-primary px-4">
+            <i class="bi bi-send me-1"></i>
+            {% if entry %}Update Entry{% else %}Submit Log Entry{% endif %}
+          </button>
+          <a href="{% url 'logbook:my_logbook' %}" class="btn btn-outline-secondary">Cancel</a>
+        </div>
+
+      </form>
+    </div>
+  </div>
+
+</div>
+</div>
+{% endblock %}

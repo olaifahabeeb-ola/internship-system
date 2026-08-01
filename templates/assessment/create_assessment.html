@@ -1,0 +1,245 @@
+{% extends "base.html" %}
+{% block title %}{{ assessment.get_assessment_type_display }} — InternTrack{% endblock %}
+{% block nav_sv_assess %}active{% endblock %}
+
+{% block content %}
+<div class="mb-3">
+  <a href="{% url 'assessment:supervisor_dashboard' %}" class="text-decoration-none text-muted">
+    <i class="bi bi-arrow-left me-1"></i> Back to Assessment Dashboard
+  </a>
+</div>
+
+<!-- Student + type banner -->
+<div class="card border-0 mb-4"
+     style="background: linear-gradient(135deg,#1a2e4a,#2d5082); color:#fff;">
+  <div class="card-body d-flex justify-content-between align-items-center flex-wrap gap-3 p-4">
+    <div>
+      <h5 class="mb-1 fw-bold">{{ assessment.get_assessment_type_display }}</h5>
+      <div class="opacity-75">
+        <strong>{{ application.student.get_full_name }}</strong> &nbsp;|&nbsp;
+        {{ application.placement.company_name }} &nbsp;|&nbsp;
+        {{ application.placement.title }}
+      </div>
+    </div>
+    <div class="text-end">
+      <div class="small opacity-75">Running Total</div>
+      <div class="fw-bold fs-3" id="totalDisplay">
+        <span id="totalScore">{{ running_total }}</span> / {{ max_possible }}
+      </div>
+      <div class="small opacity-75" id="percentDisplay">
+        {% if max_possible %}
+          ({% widthratio running_total max_possible 100 %}%)
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<form method="post" id="assessmentForm" novalidate>
+  {% csrf_token %}
+
+  <!-- ══ CRITERIA SCORES ══════════════════════════════════════════ -->
+
+  {% regroup score_data by criterion.get_category_display as grouped %}
+  {% for group in grouped %}
+  <div class="card border-0 shadow-sm mb-4">
+    <div class="card-header fw-semibold bg-light">
+      <i class="bi bi-{% if group.grouper == 'Soft Skills' %}people{% else %}cpu{% endif %} me-2"></i>
+      {{ group.grouper }}
+    </div>
+    <div class="card-body p-0">
+      <table class="table table-hover mb-0">
+        <thead class="table-light" style="font-size:0.8rem;">
+          <tr>
+            <th style="width:28%;">Criterion</th>
+            <th style="width:22%;">Description</th>
+            <th style="width:14%;" class="text-center">
+              Score (0–10)
+            </th>
+            <th>Specific Comment <span class="text-muted fw-normal">(optional)</span></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for item in group.list %}
+          <tr>
+            <td class="fw-semibold small align-middle">{{ item.criterion.name }}</td>
+            <td class="text-muted small align-middle">{{ item.criterion.description }}</td>
+            <td class="text-center align-middle">
+              <input type="number"
+                     name="score_{{ item.criterion.pk }}"
+                     id="score_{{ item.criterion.pk }}"
+                     class="form-control score-input text-center mx-auto"
+                     style="width:72px;"
+                     min="0" max="{{ item.criterion.max_score }}" step="1"
+                     value="{{ item.score }}"
+                     data-max="{{ item.criterion.max_score }}">
+              <!-- Visual bar -->
+              <div class="progress mt-1" style="height:4px;">
+                <div class="progress-bar bg-primary score-bar"
+                     id="bar_{{ item.criterion.pk }}"
+                     style="width:{% if item.score %}{% widthratio item.score item.criterion.max_score 100 %}{% else %}0{% endif %}%;">
+                </div>
+              </div>
+            </td>
+            <td class="align-middle">
+              <input type="text"
+                     name="comment_{{ item.criterion.pk }}"
+                     class="form-control form-control-sm"
+                     placeholder="Feedback on {{ item.criterion.name|lower }}…"
+                     value="{{ item.comment }}">
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  {% endfor %}
+
+  <!-- ══ OVERALL FEEDBACK ═════════════════════════════════════════ -->
+  <div class="card border-0 shadow-sm mb-4">
+    <div class="card-header fw-semibold bg-light">
+      <i class="bi bi-chat-left-quote me-2"></i>Overall Feedback
+    </div>
+    <div class="card-body p-4">
+      <div class="row g-3">
+
+        <div class="col-12">
+          <label class="form-label fw-semibold">General Comments</label>
+          <textarea name="overall_comment" rows="4" class="form-control"
+                    placeholder="Overall assessment of the intern's performance…">{{ summary_form.overall_comment.value|default:'' }}</textarea>
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-label fw-semibold">Strengths</label>
+          <textarea name="strengths" rows="3" class="form-control"
+                    placeholder="What did the student excel at?">{{ summary_form.strengths.value|default:'' }}</textarea>
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-label fw-semibold">Areas for Improvement</label>
+          <textarea name="areas_for_improvement" rows="3" class="form-control"
+                    placeholder="Where can they grow?">{{ summary_form.areas_for_improvement.value|default:'' }}</textarea>
+        </div>
+
+        <div class="col-md-4">
+          <label class="form-label fw-semibold">Overall Recommendation *</label>
+          <select name="recommendation" class="form-select">
+            {% for val, label in summary_form.fields.recommendation.choices %}
+              <option value="{{ val }}"
+                {% if summary_form.recommendation.value == val %}selected{% endif %}>
+                {{ label }}
+              </option>
+            {% endfor %}
+          </select>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ ACTION BUTTONS ════════════════════════════════════════════ -->
+  <div class="card border-0 shadow-sm">
+    <div class="card-body d-flex gap-3 align-items-center flex-wrap">
+      <button type="submit" name="action" value="draft" class="btn btn-outline-secondary px-4">
+        <i class="bi bi-floppy me-1"></i> Save Draft
+      </button>
+      <button type="button" class="btn btn-primary px-4" id="submitBtn">
+        <i class="bi bi-send-check me-1"></i> Submit Assessment
+      </button>
+      <span class="text-muted small">
+        Once submitted, this assessment cannot be edited.
+      </span>
+    </div>
+  </div>
+
+  <!-- Hidden submit-action field toggled by JS confirm dialog -->
+  <input type="hidden" name="action" id="actionField" value="draft">
+
+</form>
+
+<!-- Confirm modal -->
+<div class="modal fade" id="confirmModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-0 shadow">
+      <div class="modal-header bg-primary text-white">
+        <h5 class="modal-title">
+          <i class="bi bi-exclamation-triangle me-2"></i>Confirm Submission
+        </h5>
+        <button type="button" class="btn-close btn-close-white"
+                data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <p class="mb-1">
+          You are about to <strong>submit</strong> the
+          <strong>{{ assessment.get_assessment_type_display }}</strong> for
+          <strong>{{ application.student.get_full_name }}</strong>.
+        </p>
+        <p class="text-muted small mb-0">
+          This action is <strong>final</strong> and cannot be undone.
+          The student will be able to view the assessment once submitted.
+        </p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary"
+                data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-primary" id="confirmSubmitBtn">
+          <i class="bi bi-send-check me-1"></i> Yes, Submit
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+
+{% block extra_js %}
+<script>
+// ── Live total score calculation ──────────────────────────────────
+const criteriaInfo = {{ criteria_json|safe }};
+const maxByPk      = {};
+criteriaInfo.forEach(c => maxByPk[c.pk] = c.max);
+
+const totalMax = criteriaInfo.reduce((s, c) => s + c.max, 0);
+
+function recalc() {
+  let total = 0;
+  document.querySelectorAll('.score-input').forEach(input => {
+    const pk  = input.id.replace('score_', '');
+    const val = parseInt(input.value) || 0;
+    const max = maxByPk[pk] || 10;
+
+    // Update mini progress bar
+    const bar = document.getElementById('bar_' + pk);
+    if (bar) bar.style.width = Math.min(100, (val / max) * 100) + '%';
+
+    total += val;
+  });
+
+  document.getElementById('totalScore').textContent = total;
+  const pct = totalMax > 0 ? Math.round((total / totalMax) * 100) : 0;
+  document.getElementById('percentDisplay').textContent = '(' + pct + '%)';
+}
+
+document.querySelectorAll('.score-input').forEach(input => {
+  input.addEventListener('input', recalc);
+});
+recalc();
+
+// ── Submission confirm dialog ─────────────────────────────────────
+const modal     = new bootstrap.Modal(document.getElementById('confirmModal'));
+const submitBtn = document.getElementById('submitBtn');
+const confirmBtn = document.getElementById('confirmSubmitBtn');
+const actionField = document.getElementById('actionField');
+
+submitBtn.addEventListener('click', () => modal.show());
+
+confirmBtn.addEventListener('click', () => {
+  actionField.value = 'submit';
+  // Remove the draft button's name/value so only our hidden field fires
+  document.querySelector('button[value="draft"]').removeAttribute('name');
+  document.getElementById('assessmentForm').submit();
+});
+</script>
+{% endblock %}

@@ -1,0 +1,6 @@
+{% extends "base.html" %}
+{% block title %}My Assessments — InternTrack{% endblock %}
+{% block content %}
+<script>window.location = "{% url 'assessment:student_assessments' %}";</script>
+<p>Redirecting... <a href="{% url 'assessment:student_assessments' %}">Click here</a></p>
+{% endblock %}

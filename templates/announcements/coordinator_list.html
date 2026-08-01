@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+{% block title %}Manage Announcements — InternTrack{% endblock %}
+{% block nav_co_announce %}active{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h4 class="fw-bold mb-0">
+    <i class="bi bi-megaphone me-2 text-primary"></i>Manage Announcements
+  </h4>
+  <a href="{% url 'announcements:create' %}" class="btn btn-primary">
+    <i class="bi bi-plus-circle me-1"></i> New Announcement
+  </a>
+</div>
+
+{% if announcements %}
+<div class="card border-0 shadow-sm">
+  <div class="table-responsive">
+    <table class="table table-hover align-middle mb-0">
+      <thead class="table-light">
+        <tr>
+          <th>Title</th>
+          <th>Audience</th>
+          <th class="text-center">Priority</th>
+          <th class="text-center">Status</th>
+          <th>Posted</th>
+          <th class="text-center">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for ann in announcements %}
+        <tr class="{% if not ann.is_active %}text-muted{% endif %}">
+          <td>
+            <div class="fw-semibold">{{ ann.title }}</div>
+            <div class="small text-muted">{{ ann.message|truncatewords:10 }}</div>
+          </td>
+          <td class="small">
+            {{ ann.get_target_audience_display }}
+            {% if ann.specific_user %}
+              <br><span class="text-muted">→ {{ ann.specific_user.get_full_name }}</span>
+            {% endif %}
+          </td>
+          <td class="text-center">
+            <span class="badge bg-{{ ann.priority_colour }}">
+              {{ ann.get_priority_display }}
+            </span>
+          </td>
+          <td class="text-center">
+            {% if ann.is_active %}
+              <span class="badge bg-success">Active</span>
+            {% else %}
+              <span class="badge bg-secondary">Archived</span>
+            {% endif %}
+          </td>
+          <td class="small text-muted">{{ ann.created_at|date:"d M Y" }}</td>
+          <td class="text-center">
+            <div class="d-flex gap-1 justify-content-center">
+              <a href="{% url 'announcements:detail' ann.pk %}"
+                 class="btn btn-sm btn-outline-secondary" title="View">
+                <i class="bi bi-eye"></i>
+              </a>
+              <a href="{% url 'announcements:edit' ann.pk %}"
+                 class="btn btn-sm btn-outline-primary" title="Edit">
+                <i class="bi bi-pencil"></i>
+              </a>
+              <form method="post" action="{% url 'announcements:toggle' ann.pk %}">
+                {% csrf_token %}
+                <button class="btn btn-sm {% if ann.is_active %}btn-outline-warning{% else %}btn-outline-success{% endif %}"
+                        title="{% if ann.is_active %}Archive{% else %}Activate{% endif %}">
+                  <i class="bi {% if ann.is_active %}bi-archive{% else %}bi-arrow-counterclockwise{% endif %}"></i>
+                </button>
+              </form>
+              <a href="{% url 'announcements:delete' ann.pk %}"
+                 class="btn btn-sm btn-outline-danger" title="Delete">
+                <i class="bi bi-trash"></i>
+              </a>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% else %}
+<div class="text-center py-5 text-muted">
+  <i class="bi bi-megaphone fs-1 d-block mb-3"></i>
+  <h5>No announcements yet</h5>
+  <a href="{% url 'announcements:create' %}" class="btn btn-primary mt-2">
+    Post Your First Announcement
+  </a>
+</div>
+{% endif %}
+{% endblock %}
