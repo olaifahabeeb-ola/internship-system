@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load static %}
 {% block title %}Register — InternTrack{% endblock %}
 
 {% block content %}
@@ -7,7 +8,7 @@
  <!-- Decorative panel — recolors live as a role is selected -->
   <div class="col-lg-4 d-none d-lg-block">
     <div id="regPanel" class="rounded-3 shadow-sm overflow-hidden position-relative h-100"
-         style="min-height:520px; background:#f4f1ea url('/media/auth-illustration.png') center/cover no-repeat;">
+         style="min-height:520px; background:#f4f1ea url('{% static 'auth-illustration.svg' %}') center/cover no-repeat;">
       <div id="regPanelScrim" class="position-absolute bottom-0 start-0 end-0"
            style="height:60%; background:linear-gradient(to top, rgba(26,46,74,.94), rgba(26,46,74,0)); transition: background .35s ease;"></div>
       <div class="position-relative h-100 d-flex flex-column justify-content-end p-4 text-white">

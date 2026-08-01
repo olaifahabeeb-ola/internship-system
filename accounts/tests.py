@@ -22,3 +22,18 @@ class DashboardRoutingTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'accounts/admin_dashboard.html')
+
+
+class AuthPageAssetTests(TestCase):
+    def test_auth_templates_use_static_background_asset(self):
+        pages = [
+            ('accounts:login', 'login'),
+            ('accounts:register', 'register'),
+            ('accounts:password_reset', 'password_reset'),
+        ]
+
+        for url_name, _ in pages:
+            with self.subTest(url_name=url_name):
+                response = self.client.get(reverse(url_name))
+                self.assertEqual(response.status_code, 200)
+                self.assertContains(response, 'auth-illustration.svg')
