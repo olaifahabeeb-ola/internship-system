@@ -3,13 +3,14 @@ Django settings for internship_system project.
 """
 
 from pathlib import Path
+import dj_database_url
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # ─── SECURITY ────────────────────────────────────────────────────────────────
 SECRET_KEY = 'django-insecure-change-this-before-production-xyz123!'
-DEBUG = True
-ALLOWED_HOSTS = ['*']   # tighten in production
+DEBUG = False
+ALLOWED_HOSTS = ['*', '.onrender.com']
 
 # ─── APPLICATIONS ─────────────────────────────────────────────────────────────
 INSTALLED_APPS = [
@@ -27,7 +28,6 @@ INSTALLED_APPS = [
     'announcements',
     'reports',
     'notifications',
-
 ]
 
 MIDDLEWARE = [
@@ -46,7 +46,6 @@ ROOT_URLCONF = 'internship_system.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        # Global templates folder at project root
         'DIRS': [BASE_DIR / 'templates'],
         'APP_DIRS': True,
         'OPTIONS': {
@@ -65,16 +64,15 @@ WSGI_APPLICATION = 'internship_system.wsgi.application'
 
 # ─── DATABASE ─────────────────────────────────────────────────────────────────
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
+    'default': dj_database_url.config(
+        default='sqlite:///db.sqlite3',
+        conn_max_age=600
+    )
 }
 
 # ─── AUTH ─────────────────────────────────────────────────────────────────────
-AUTH_USER_MODEL = 'accounts.CustomUser'   # swap in our custom user
+AUTH_USER_MODEL = 'accounts.CustomUser'
 
-# Where to go after login/logout
 LOGIN_URL = '/accounts/login/'
 LOGIN_REDIRECT_URL = '/accounts/dashboard/'
 LOGOUT_REDIRECT_URL = '/accounts/login/'
@@ -94,8 +92,8 @@ USE_TZ = True
 
 # ─── STATIC & MEDIA ───────────────────────────────────────────────────────────
 STATIC_URL = '/static/'
-STATICFILES_DIRS = [BASE_DIR / 'static']   # dev static files
-STATIC_ROOT = BASE_DIR / 'staticfiles'     # collectstatic output
+STATICFILES_DIRS = [BASE_DIR / 'static']
+STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
@@ -103,24 +101,17 @@ MEDIA_ROOT = BASE_DIR / 'media'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # ─── FILE UPLOAD CONSTRAINTS ──────────────────────────────────────────────────
-# Enforced in forms.py clean() methods — not Django built-ins
 CV_ALLOWED_EXTENSIONS = ['pdf', 'docx']
 CV_MAX_SIZE_MB = 2
-CV_MAX_SIZE_BYTES = CV_MAX_SIZE_MB * 1024 * 1024   # 2 097 152 bytes
+CV_MAX_SIZE_BYTES = CV_MAX_SIZE_MB * 1024 * 1024
 
-# Logbook attachments
 LOGBOOK_ALLOWED_EXTENSIONS = ['pdf', 'jpg', 'jpeg', 'png', 'docx']
 LOGBOOK_MAX_SIZE_MB = 5
-LOGBOOK_MAX_SIZE_BYTES = LOGBOOK_MAX_SIZE_MB * 1024 * 1024   # 5 242 880 bytes
+LOGBOOK_MAX_SIZE_BYTES = LOGBOOK_MAX_SIZE_MB * 1024 * 1024
 
-# Days without a log before student is flagged
-LOGBOOK_INACTIVE_DAYS = 5    # supervisor alert
-LOGBOOK_BEHIND_DAYS   = 7    # coordinator alert
+LOGBOOK_INACTIVE_DAYS = 5
+LOGBOOK_BEHIND_DAYS = 7
 
-# ─── EMAIL (password reset) ───────────────────────────────────────────────────
-# Console backend: "sends" email by printing it straight to the terminal
-# running `runserver` — no real mail server needed. Perfect for local dev
-# and demos. Switch EMAIL_BACKEND to an SMTP one (Gmail, SendGrid, etc.)
-# only when this needs to reach a real inbox.
+# ─── EMAIL ───────────────────────────────────────────────────────────────────
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 DEFAULT_FROM_EMAIL = 'InternTrack <noreply@interntrack.local>'

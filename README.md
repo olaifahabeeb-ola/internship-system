@@ -200,7 +200,6 @@ Password reset emails are **not** sent over real SMTP in development — `EMAIL_
 ## Notes for future development
 
 A few recurring gotchas worth knowing before editing this codebase further:
-
 - **A disabled Django form field is not automatically disabled in the rendered HTML** if a template hand-writes the `<select>`/`<input>` instead of using `{{ form.field }}`. The `disabled` attribute has to be added explicitly in the template (`{% if form.field.field.disabled %}disabled{% endif %}`), or the field will look editable even though Django ignores whatever value is submitted for it server-side.
 - **`get_or_create()` only applies its `defaults` on first creation.** If a related field (like which supervisor owns a draft assessment) needs to stay in sync after the fact — say, a supervisor reassignment — that has to be handled explicitly on every fetch, not assumed from the original creation.
 - **Keep one function name per file.** Pasting an updated version of a function without deleting the old one lets Python silently keep whichever definition comes last with no warning — this has caused more than one confusing bug during development. When editing a view, confirm with a text search that the function name appears exactly once before saving.
