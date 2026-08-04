@@ -2,6 +2,7 @@
 Django settings for internship_system project.
 """
 
+import dj_database_url
 import os
 from pathlib import Path
 
@@ -70,11 +71,11 @@ WSGI_APPLICATION = 'internship_system.wsgi.application'
 # ─── DATABASE ─────────────────────────────────────────────────────────────────
 # Reads DATABASE_URL if set (Render production) — otherwise falls back to
 # local SQLite, so nothing changes for local development on your own machine.
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
+DDATABASES = {
+    'default': dj_database_url.config(
+        default=f"sqlite:///{BASE_DIR / 'db.sqlite3'}",
+        conn_max_age=600,
+    )
 }
 
 # ─── AUTH ─────────────────────────────────────────────────────────────────────
