@@ -4,17 +4,16 @@ Django settings for internship_system project.
 
 import os
 from pathlib import Path
-import dj_database_url
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # ─── SECURITY ────────────────────────────────────────────────────────────────
 SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-change-this-before-production-xyz123!')
-DEBUG = os.environ.get('DEBUG', 'true') == 'True'
+DEBUG = True
 ALLOWED_HOSTS = ['*']   # Render's own domain is always trusted; tighten later if you want
 
 CSRF_TRUSTED_ORIGINS = [
-    'https://YOUR-APP-NAME.onrender.com',   # replace with your actual Render URL
+    'https://internship-system-wo5s.onrender.com',   # replace with your actual Render URL
 ]
 
 # ─── APPLICATIONS ─────────────────────────────────────────────────────────────
