@@ -2,15 +2,20 @@
 Django settings for internship_system project.
 """
 
+import os
 from pathlib import Path
 import dj_database_url
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # ─── SECURITY ────────────────────────────────────────────────────────────────
-SECRET_KEY = 'django-insecure-change-this-before-production-xyz123!'
-DEBUG = False
-ALLOWED_HOSTS = ['*', '.onrender.com']
+SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-change-this-before-production-xyz123!')
+DEBUG = os.environ.get('DEBUG', 'False') == 'True'
+ALLOWED_HOSTS = ['*']   # Render's own domain is always trusted; tighten later if you want
+
+CSRF_TRUSTED_ORIGINS = [
+    'https://YOUR-APP-NAME.onrender.com',   # replace with your actual Render URL
+]
 
 # ─── APPLICATIONS ─────────────────────────────────────────────────────────────
 INSTALLED_APPS = [
@@ -32,6 +37,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -63,10 +69,12 @@ TEMPLATES = [
 WSGI_APPLICATION = 'internship_system.wsgi.application'
 
 # ─── DATABASE ─────────────────────────────────────────────────────────────────
+# Reads DATABASE_URL if set (Render production) — otherwise falls back to
+# local SQLite, so nothing changes for local development on your own machine.
 DATABASES = {
     'default': dj_database_url.config(
-        default='sqlite:///db.sqlite3',
-        conn_max_age=600
+        default=f"sqlite:///{BASE_DIR / 'db.sqlite3'}",
+        conn_max_age=600,
     )
 }
 
@@ -94,6 +102,7 @@ USE_TZ = True
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
 STATIC_ROOT = BASE_DIR / 'staticfiles'
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
@@ -110,8 +119,8 @@ LOGBOOK_MAX_SIZE_MB = 5
 LOGBOOK_MAX_SIZE_BYTES = LOGBOOK_MAX_SIZE_MB * 1024 * 1024
 
 LOGBOOK_INACTIVE_DAYS = 5
-LOGBOOK_BEHIND_DAYS = 7
+LOGBOOK_BEHIND_DAYS   = 7
 
-# ─── EMAIL ───────────────────────────────────────────────────────────────────
+# ─── EMAIL (password reset) ───────────────────────────────────────────────────
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 DEFAULT_FROM_EMAIL = 'InternTrack <noreply@interntrack.local>'
