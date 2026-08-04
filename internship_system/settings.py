@@ -72,11 +72,17 @@ WSGI_APPLICATION = 'internship_system.wsgi.application'
 # Reads DATABASE_URL if set (Render production) — otherwise falls back to
 # local SQLite, so nothing changes for local development on your own machine.
 DATABASES = {
-    'default': dj_database_url.config(
-        default=f"sqlite:///{BASE_DIR / 'db.sqlite3'}",
-        conn_max_age=600,
-        ssl_require=True
-    )
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'neondb',
+        'USER': 'neondb_owner',
+        'PASSWORD': 'npg_q9pRx0ndHIfW',
+        'HOST': 'ep-winter-forest-as7iefrw-pooler.c-4.eu-central-1.aws.neon.tech',
+        'PORT': '5432',
+        'OPTIONS': {
+            'sslmode': 'require',
+        },
+    }
 }
 
 # ─── AUTH ─────────────────────────────────────────────────────────────────────
