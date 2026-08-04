@@ -2,7 +2,6 @@
 Django settings for internship_system project.
 """
 
-import dj_database_url
 import os
 from pathlib import Path
 
