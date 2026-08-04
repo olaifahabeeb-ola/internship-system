@@ -10,7 +10,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # ─── SECURITY ────────────────────────────────────────────────────────────────
 SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-change-this-before-production-xyz123!')
-DEBUG = os.environ.get('DEBUG', 'False') == 'True'
+DEBUG = os.environ.get('DEBUG', 'true') == 'True'
 ALLOWED_HOSTS = ['*']   # Render's own domain is always trusted; tighten later if you want
 
 CSRF_TRUSTED_ORIGINS = [
@@ -72,10 +72,10 @@ WSGI_APPLICATION = 'internship_system.wsgi.application'
 # Reads DATABASE_URL if set (Render production) — otherwise falls back to
 # local SQLite, so nothing changes for local development on your own machine.
 DATABASES = {
-    'default': dj_database_url.config(
-        default=f"sqlite:///{BASE_DIR / 'db.sqlite3'}",
-        conn_max_age=600,
-    )
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
+    }
 }
 
 # ─── AUTH ─────────────────────────────────────────────────────────────────────
