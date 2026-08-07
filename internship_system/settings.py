@@ -4,17 +4,16 @@ Django settings for internship_system project.
 
 import os
 from pathlib import Path
-import dj_database_url
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # ─── SECURITY ────────────────────────────────────────────────────────────────
 SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-change-this-before-production-xyz123!')
-DEBUG = os.environ.get('DEBUG', 'False') == 'True'
-ALLOWED_HOSTS = ['*']
+DEBUG = True
+ALLOWED_HOSTS = ['*']   # Render's own domain is always trusted; tighten later if you want
 
 CSRF_TRUSTED_ORIGINS = [
-    'https://internship-system-wo5s.onrender.com',   # confirm this is your actual current live URL
+    'https://internship-system-wo5s.onrender.com',   # replace with your actual Render URL
 ]
 
 # ─── APPLICATIONS ─────────────────────────────────────────────────────────────
@@ -69,22 +68,20 @@ TEMPLATES = [
 WSGI_APPLICATION = 'internship_system.wsgi.application'
 
 # ─── DATABASE ─────────────────────────────────────────────────────────────────
-# Reads DATABASE_URL from the environment (set on Render's dashboard) —
-# never hardcode credentials directly in this file again. Falls back to
-# local SQLite automatically when DATABASE_URL isn't set, so nothing
-# changes for local development on your own machine.
-#
-# conn_max_age=0 is deliberate here: Neon's "-pooler" endpoint runs
-# PgBouncer in transaction-pooling mode, which doesn't always play well
-# with Django holding a connection open and reusing it (conn_max_age > 0)
-# — occasionally surfaces as a confusing "connection already closed"
-# error that's hard to reproduce. 0 means "open a fresh connection per
-# request," which is the safe default for a pooled endpoint like this.
+# Reads DATABASE_URL if set (Render production) — otherwise falls back to
+# local SQLite, so nothing changes for local development on your own machine.
 DATABASES = {
-    'default': dj_database_url.config(
-        default=f"sqlite:///{BASE_DIR / 'db.sqlite3'}",
-        conn_max_age=0,
-    )
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'neondb',
+        'USER': 'neondb_owner',
+        'PASSWORD': 'your-new-password-here',
+        'HOST': 'your-new-host-here',
+        'PORT': '5432',
+        'OPTIONS': {
+            'sslmode': 'require',
+        },
+    }
 }
 
 # ─── AUTH ─────────────────────────────────────────────────────────────────────
@@ -111,7 +108,6 @@ USE_TZ = True
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
 STATIC_ROOT = BASE_DIR / 'staticfiles'
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
