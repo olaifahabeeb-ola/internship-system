@@ -115,3 +115,5 @@ LOGBOOK_BEHIND_DAYS   = 7
 
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 DEFAULT_FROM_EMAIL = 'InternTrack <noreply@interntrack.local>'
+
+WHITENOISE_MANIFEST_STRICT = False
