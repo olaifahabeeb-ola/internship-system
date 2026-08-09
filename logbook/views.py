@@ -4,6 +4,7 @@ from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 from django.db.models import Count, Q
 from django.utils import timezone
+from django.urls import reverse
 from django.conf import settings
 from datetime import timedelta, date
 
@@ -12,6 +13,7 @@ from accounts.decorators import (
     coordinator_required, supervisor_or_coordinator_required,
 )
 from accounts.models import CustomUser
+from notifications.utils import send_notification
 from placements.models import Application
 from .models import LogbookEntry, WeeklyReport
 from .forms import (
@@ -356,6 +358,12 @@ def supervisor_review_log(request, pk):
             status=form.cleaned_data['status'],
             comment=form.cleaned_data.get('supervisor_comment', ''),
         )
+        send_notification(
+            user=entry.application.student,
+            message=f'Your logbook entry for {entry.date} was {entry.status}.',
+            notification_type='logbook',
+            link=reverse('logbook:my_logbook'),
+        )
         verb = 'approved' if entry.status == 'approved' else 'rejected'
         messages.success(
             request,
@@ -387,12 +395,22 @@ def bulk_approve(request):
                 status='pending',
             )
         )
+        entries_to_notify = list(
+            updated.select_related('application__student')
+        )
         count = updated.count()
         updated.update(
             status='approved',
             reviewed_by=request.user,
             reviewed_at=timezone.now(),
         )
+        for entry in entries_to_notify:
+            send_notification(
+                user=entry.application.student,
+                message=f'Your logbook entry for {entry.date} was approved.',
+                notification_type='logbook',
+                link=reverse('logbook:my_logbook'),
+            )
         messages.success(request, f"{count} log entr{'y' if count == 1 else 'ies'} approved.")
     else:
         messages.error(request, "No entries selected.")
@@ -539,6 +557,12 @@ def review_detail(request, pk):
                 supervisor=request.user,
                 status=form.cleaned_data['status'],
                 comment=form.cleaned_data.get('supervisor_comment', ''),
+            )
+            send_notification(
+                user=entry.application.student,
+                message=f'Your logbook entry for {entry.date} was {entry.status}.',
+                notification_type='logbook',
+                link=reverse('logbook:my_logbook'),
             )
             verb = 'approved' if entry.status == 'approved' else 'rejected'
             messages.success(request, f"Log entry for {entry.date} has been {verb}.")
