@@ -142,6 +142,14 @@ def apply(request, pk):
         app.student   = request.user
         app.placement = placement
         app.save()
+
+        send_notification(
+            user=placement.posted_by,
+            message=f'{request.user.get_full_name()} applied for "{placement.title}".',
+            notification_type='application',
+            link=reverse('placements:coordinator_app_list', kwargs={'pk': placement.pk}),
+        )
+
         messages.success(
             request,
             f'Application submitted for "{placement.title}"! '
@@ -198,6 +206,21 @@ def supervisor_create_placement(request):
             placement.target_department = sv_dept
 
         placement.save()
+
+        target_coordinators = CustomUser.objects.filter(
+            role='coordinator', faculty=placement.target_department
+        )
+        target_admins = CustomUser.objects.filter(
+            models.Q(is_superuser=True) | models.Q(is_staff=True)
+        )
+        for recipient in list(target_coordinators) + list(target_admins):
+            send_notification(
+                user=recipient,
+                message=f'New placement "{placement.title}" at {placement.company_name} awaiting approval.',
+                notification_type='placement',
+                link=reverse('placements:coordinator_pending_placements'),
+            )
+
         messages.success(
             request,
             f'"{placement.title}" submitted for review. '
