@@ -1,6 +1,7 @@
 from django.db import models
 from django.utils import timezone
 from accounts.models import CustomUser, DEPARTMENT_CHOICES, PROGRAMME_CHOICES, LEVEL_CHOICES
+from cloudinary_storage.storage import RawMediaCloudinaryStorage
 
 # Real, concrete departments only — 'All Departments' is deliberately
 # excluded here. Placement targeting is now always strict: a student
@@ -284,6 +285,7 @@ class Application(models.Model):
     cover_letter = models.TextField(blank=True)
     cv           = models.FileField(
         upload_to='cvs/', blank=True, null=True,
+        storage=RawMediaCloudinaryStorage(),
     )
     status       = models.CharField(
         max_length=10, choices=STATUS_CHOICES, default='pending'

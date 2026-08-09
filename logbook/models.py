@@ -3,6 +3,7 @@ from django.core.exceptions import ValidationError
 from django.utils import timezone
 from accounts.models import CustomUser
 from placements.models import Application
+from cloudinary_storage.storage import RawMediaCloudinaryStorage
 
 
 class LogbookEntry(models.Model):
@@ -24,6 +25,7 @@ class LogbookEntry(models.Model):
     attachment           = models.FileField(
         upload_to='logbook_attachments/',
         blank=True, null=True,
+        storage=RawMediaCloudinaryStorage(),
     )
     status             = models.CharField(
         max_length=10, choices=STATUS_CHOICES, default='pending'
