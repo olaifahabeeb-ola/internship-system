@@ -88,6 +88,18 @@ def submit_log(request):
             messages.error(request, "You have already submitted a log entry for today.")
         else:
             entry.save()
+
+            if application.supervisor:
+                send_notification(
+                    user=application.supervisor,
+                    message=(
+                        f'{request.user.get_full_name()} submitted a new logbook '
+                        f'entry for {entry.date}.'
+                    ),
+                    notification_type='logbook',
+                    link=reverse('logbook:review_list'),
+                )
+
             messages.success(
                 request,
                 f'Log entry for {entry.date} submitted successfully!'
