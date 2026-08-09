@@ -33,16 +33,18 @@
       <form method="post" enctype="multipart/form-data" novalidate>
         {% csrf_token %}
 
-        <!-- Date -->
+        <!-- Date (read-only, server-controlled — cannot be backdated) -->
         <div class="mb-3">
-          <label class="form-label fw-semibold">Date *</label>
-          <input type="date" name="date"
-                 class="form-control {% if form.date.errors %}is-invalid{% endif %}"
-                 value="{{ form.date.value|default:'' }}"
-                 max="{% now 'Y-m-d' %}">
-          {% for e in form.date.errors %}
-            <div class="invalid-feedback">{{ e }}</div>{% endfor %}
-          <div class="form-text">Must be within your placement period and not in the future.</div>
+          <label class="form-label fw-semibold">Date</label>
+          <input type="text" class="form-control" disabled
+                 value="{% if entry %}{{ entry.date|date:'d M Y' }}{% else %}{% now 'd M Y' %}{% endif %}">
+          <div class="form-text">
+            {% if entry %}
+              The date cannot be changed after submission.
+            {% else %}
+              Entries are always logged under today's date.
+            {% endif %}
+          </div>
         </div>
 
         <!-- Activity Description -->

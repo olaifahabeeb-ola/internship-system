@@ -68,32 +68,31 @@ def submit_log(request):
     if request.method == 'POST' and form.is_valid():
         entry = form.save(commit=False)
         entry.application = application
+        entry.date = timezone.now().date()  # always today — cannot be backdated
 
-        errors = []
-        log_date = form.cleaned_data.get('date')
-
-        if log_date:
-            if log_date > timezone.now().date():
-                form.add_error('date', 'Log date cannot be in the future.')
-            elif log_date < application.placement.start_date:
-                form.add_error('date',
-                    f'Date is before your placement start date '
-                    f'({application.placement.start_date}).')
-            elif log_date > application.placement.end_date:
-                form.add_error('date',
-                    f'Date is after your placement end date '
-                    f'({application.placement.end_date}).')
-            elif LogbookEntry.objects.filter(
-                    application=application, date=log_date).exists():
-                form.add_error('date',
-                    'You have already submitted a log entry for this date.')
-            else:
-                entry.save()
-                messages.success(
-                    request,
-                    f'Log entry for {entry.date} submitted successfully!'
-                )
-                return redirect('logbook:my_logbook')
+        if entry.date < application.placement.start_date:
+            messages.error(
+                request,
+                f'Your placement has not started yet '
+                f'(starts {application.placement.start_date}).'
+            )
+        elif entry.date > application.placement.end_date:
+            messages.error(
+                request,
+                f'Your placement has ended '
+                f'({application.placement.end_date}). '
+                'You can no longer submit new entries.'
+            )
+        elif LogbookEntry.objects.filter(
+                application=application, date=entry.date).exists():
+            messages.error(request, "You have already submitted a log entry for today.")
+        else:
+            entry.save()
+            messages.success(
+                request,
+                f'Log entry for {entry.date} submitted successfully!'
+            )
+            return redirect('logbook:my_logbook')
 
     context = {
         'form':        form,

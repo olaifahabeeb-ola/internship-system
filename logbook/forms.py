@@ -10,12 +10,9 @@ class LogbookEntryForm(forms.ModelForm):
 
     class Meta:
         model  = LogbookEntry
-        fields = ['date', 'activity_description', 'skills_gained',
+        fields = ['activity_description', 'skills_gained',
                   'hours_worked', 'attachment']
         widgets = {
-            'date': forms.DateInput(
-                attrs={'type': 'date', 'max': timezone.now().date().isoformat()}
-            ),
             'activity_description': forms.Textarea(attrs={
                 'rows': 5,
                 'placeholder': 'Describe the tasks you performed today in detail...'
@@ -60,11 +57,6 @@ class LogbookEntryForm(forms.ModelForm):
             raise forms.ValidationError("Hours worked must be between 1 and 24.")
         return hours
 
-    def clean_date(self):
-        date = self.cleaned_data.get('date')
-        if date and date > timezone.now().date():
-            raise forms.ValidationError("Log date cannot be in the future.")
-        return date
 
 
 class ReviewLogEntryForm(forms.Form):
